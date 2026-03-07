@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from 'wagmi';
 import { parseUnits, formatUnits } from 'viem';
 import TokenSelector from '../components/TokenSelector';
+import { useNotification } from '../components/NotificationProvider';
 import { 
   DEX_CONSTANTS, 
   ERC20_ABI, 
@@ -56,6 +57,8 @@ const PAIR_ABI = [
 
 function SwapPage() {
   const { address, isConnected } = useAccount();
+  const { addNotification } = useNotification();
+  const lastSwapRef = useRef(null);
   const t = (key) => key;
   const slippageTolerance = 'Slippage Tolerance';
   const connectWalletPrompt = 'Please connect your wallet';
@@ -233,6 +236,14 @@ function SwapPage() {
 
   useEffect(() => {
     if (isSwapConfirmed) {
+      const info = lastSwapRef.current;
+      if (info) {
+        addNotification(
+          `Swap ${info.amount} ${info.fromSymbol} to ${info.toSymbol}`,
+          swapHash,
+        );
+        lastSwapRef.current = null;
+      }
       setSwapSuccess(true);
       setFromAmount('');
       setTimeout(() => {
@@ -428,6 +439,11 @@ function SwapPage() {
         };
       }
 
+      lastSwapRef.current = {
+        fromSymbol: fromToken.symbol,
+        toSymbol: toToken.symbol,
+        amount: fromAmount,
+      };
       await swap(call);
     } catch (err) {
       console.error('Swap error:', err);

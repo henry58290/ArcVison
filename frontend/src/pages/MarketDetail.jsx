@@ -9,6 +9,7 @@ import {
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../components/utils/contracts';
 import { fetchMarketLogs, calculateProbabilityTimeSeries } from '../components/utils/logParser';
 import { clearCache } from '../components/utils/indexedDb';
+import { useNotification } from '../components/NotificationProvider';
 
 /* ────────────────────────── constants ────────────────────────── */
 
@@ -113,6 +114,7 @@ export default function MarketDetail() {
   const { address, isConnected } = useAccount();
   const marketId = Number(id);
   const isMobile = useIsMobile();
+  const { addNotification } = useNotification();
 
   /* ── contract reads ── */
 
@@ -322,6 +324,9 @@ export default function MarketDetail() {
   // After trade is confirmed on-chain
   useEffect(() => {
     if (tradeConfirmed) {
+      const side = selectedSide ? 'Yes' : 'No';
+      const amt = amount.trim() || '0.01';
+      addNotification(`Buy ${side} — ${amt} USDC`, tradeHash);
       refreshAllData();
     }
   }, [tradeConfirmed, refreshAllData]);
@@ -329,6 +334,7 @@ export default function MarketDetail() {
   // After resolve is confirmed on-chain
   useEffect(() => {
     if (resolveConfirmed) {
+      addNotification('Market Resolved', resolveHash);
       refreshAllData();
       setShowResolveModal(null);
     }
@@ -337,6 +343,7 @@ export default function MarketDetail() {
   // After cancel is confirmed on-chain
   useEffect(() => {
     if (cancelConfirmed) {
+      addNotification('Market Cancelled', cancelHash);
       refreshAllData();
       setShowCancelModal(false);
       setCancelReason('');
