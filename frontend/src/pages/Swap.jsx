@@ -178,14 +178,14 @@ function SwapPage() {
   });
 
   const { writeContract: approve, isPending: isApproving } = useWriteContract();
-  const { writeContract: swap, isPending: isSwapping, hash: swapHash, error: swapWriteError } = useWriteContract();
+  const { writeContract: swap, isPending: isSwapping, data: swapHash, error: swapWriteError } = useWriteContract();
   
-  const { isConfirmed: isSwapConfirmed } = useWaitForTransactionReceipt({
+  const { isSuccess: isSwapConfirmed } = useWaitForTransactionReceipt({
     hash: swapHash,
   });
 
   const [pendingApproveHash, setPendingApproveHash] = useState(null);
-  const { isConfirmed: isApproveConfirmed } = useWaitForTransactionReceipt({
+  const { isSuccess: isApproveConfirmed } = useWaitForTransactionReceipt({
     hash: pendingApproveHash,
   });
 
