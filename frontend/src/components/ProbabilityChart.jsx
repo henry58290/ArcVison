@@ -17,7 +17,7 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
     abi: CONTRACT_ABI,
     functionName: 'getOdds',
     args: [BigInt(marketId)],
-    query: { enabled: !!marketId },
+    query: { enabled: !!marketId, refetchInterval: 15000 },
   });
 
   // Prefer contract read, fall back to parent-provided prop
@@ -72,12 +72,24 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
 
   // Build chart data: use log history if available, else show current contract odds as flat line
   const chartData = useMemo(() => {
-    if (data.length > 0) return data;
+    const now = Math.floor(Date.now() / 1000);
+
+    if (data.length > 0) {
+      // Append a live "now" point so the chart extends to the current moment
+      const lastPoint = data[data.length - 1];
+      if (currentYesOdds != null && now > lastPoint.time) {
+        const liveValue = parseFloat((currentYesOdds / 100).toFixed(2));
+        return [
+          ...data,
+          { time: now, value: liveValue, timeStr: '' },
+        ];
+      }
+      return data;
+    }
 
     // No trade history — show current contract odds as a flat line
     if (!loading && currentYesOdds != null) {
-      const now = Math.floor(Date.now() / 1000);
-      const prob = currentYesOdds / 100; // scaled ×10000 → percentage
+      const prob = currentYesOdds / 100;
       return [
         { time: now - 3600, value: prob, timeStr: '' },
         { time: now, value: prob, timeStr: '' },
@@ -116,8 +128,8 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
         <div style={{
           width: '16px',
           height: '16px',
-          border: '2px solid var(--color-border, #27272a)',
-          borderTopColor: '#f97316',
+          border: '2px solid var(--color-border)',
+          borderTopColor: 'var(--color-accent)',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
         }} />
@@ -132,14 +144,14 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
           <XAxis
             dataKey="time"
             tickFormatter={(t) => new Date(t * 1000).toLocaleDateString()}
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            tick={{ fontSize: 10, fill: 'var(--color-fg-dim)' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             domain={[0, 100]}
             tickFormatter={(v) => `${v}%`}
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            tick={{ fontSize: 10, fill: 'var(--color-fg-dim)' }}
             axisLine={false}
             tickLine={false}
             width={35}
@@ -148,20 +160,20 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
             formatter={(value) => [`${value.toFixed(2)}%`, 'YES Probability']}
             labelFormatter={(label) => new Date(label * 1000).toLocaleDateString()}
             contentStyle={{
-              background: 'var(--color-surface, #1f1f23)',
-              border: '1px solid var(--color-border, #27272a)',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
               borderRadius: '4px',
               fontSize: '12px',
-              color: 'var(--color-fg, #fff)'
+              color: 'var(--color-fg)'
             }}
           />
           <Line
             type="monotone"
             dataKey="value"
-            stroke="#22c55e"
+            stroke="var(--color-success)"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: '#22c55e' }}
+            activeDot={{ r: 4, fill: 'var(--color-success)' }}
             isAnimationActive={false}
           />
         </LineChart>

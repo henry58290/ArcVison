@@ -262,16 +262,34 @@ export default function MarketDetail() {
   }, [chartData, timeFilter]);
 
   const displayChartData = useMemo(() => {
-    if (filteredChartData.length > 0) return filteredChartData;
+    const now = Math.floor(Date.now() / 1000);
+
+    if (filteredChartData.length > 0) {
+      // Append a live "now" point so the chart extends to the current moment
+      // and reflects the latest on-chain odds immediately after a trade.
+      const liveYes = odds
+        ? parseFloat((Number(odds[0]) / 100).toFixed(2))
+        : yesPercent;
+      const liveNo = parseFloat((100 - liveYes).toFixed(2));
+      const lastPoint = filteredChartData[filteredChartData.length - 1];
+
+      if (now > lastPoint.time) {
+        return [
+          ...filteredChartData,
+          { time: now, yes: liveYes, no: liveNo, timeStr: '' },
+        ];
+      }
+      return filteredChartData;
+    }
+
     if (!chartLoading && yesPercent != null) {
-      const now = Math.floor(Date.now() / 1000);
       return [
         { time: now - 3600, yes: yesPercent, no: noPercent, timeStr: '' },
         { time: now, yes: yesPercent, no: noPercent, timeStr: '' },
       ];
     }
     return [];
-  }, [filteredChartData, chartLoading, yesPercent, noPercent]);
+  }, [filteredChartData, chartLoading, yesPercent, noPercent, odds]);
 
   /* ── trade handler ── */
 
@@ -295,9 +313,9 @@ export default function MarketDetail() {
   /* ── unified refresh after confirmed tx ── */
 
   const refreshAllData = useCallback(async () => {
-    clearCache(marketId);
-    refetchMarket();
+    await clearCache(marketId);
     refetchOdds();
+    refetchMarket();
     loadChartData(true);
   }, [marketId, refetchMarket, refetchOdds, loadChartData]);
 
@@ -374,7 +392,7 @@ export default function MarketDetail() {
           onClick={() => navigate('/')}
           style={{
             padding: '10px 24px', fontSize: '0.875rem', fontWeight: '600',
-            background: 'var(--color-accent)', color: '#08090a',
+            background: 'var(--color-accent)', color: 'var(--color-accent-fg)',
             border: 'none', borderRadius: '8px', cursor: 'pointer',
             fontFamily: 'var(--font-body)', textTransform: 'uppercase',
           }}
@@ -396,40 +414,40 @@ export default function MarketDetail() {
       {/* Yes bar */}
       <div style={{ marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#22c55e' }}>Yes</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#22c55e' }}>{yesPercent}%</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-success)' }}>Yes</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-success)' }}>{yesPercent}%</span>
         </div>
         <div style={{ height: '8px', background: 'var(--color-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${yesPercent}%`, background: '#22c55e', borderRadius: '4px', transition: 'width 0.5s ease' }} />
+          <div style={{ height: '100%', width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
         </div>
       </div>
       {/* No bar */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#ef4444' }}>No</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#ef4444' }}>{noPercent}%</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)' }}>No</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)' }}>{noPercent}%</span>
         </div>
         <div style={{ height: '8px', background: 'var(--color-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${noPercent}%`, background: '#ef4444', borderRadius: '4px', transition: 'width 0.5s ease' }} />
+          <div style={{ height: '100%', width: `${noPercent}%`, background: 'var(--color-danger)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
         </div>
       </div>
       {/* Large outcome cards */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
         <div style={{
-          background: 'rgba(34,197,94,0.08)',
-          border: '1px solid rgba(34,197,94,0.25)',
+          background: 'var(--color-success-bg)',
+          border: '1px solid var(--color-success)',
           borderRadius: '10px', padding: '1rem', textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.625rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>Yes</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#22c55e', lineHeight: 1 }}>{yesPercent}%</div>
+          <div style={{ fontSize: '0.625rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>Yes</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--color-success)', lineHeight: 1 }}>{yesPercent}%</div>
         </div>
         <div style={{
-          background: 'rgba(239,68,68,0.08)',
-          border: '1px solid rgba(239,68,68,0.25)',
+          background: 'var(--color-danger-bg)',
+          border: '1px solid var(--color-danger)',
           borderRadius: '10px', padding: '1rem', textAlign: 'center',
         }}>
-          <div style={{ fontSize: '0.625rem', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>No</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#ef4444', lineHeight: 1 }}>{noPercent}%</div>
+          <div style={{ fontSize: '0.625rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>No</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--color-danger)', lineHeight: 1 }}>{noPercent}%</div>
         </div>
       </div>
     </div>
@@ -492,7 +510,7 @@ export default function MarketDetail() {
             <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Est. Payout
             </span>
-            <span style={{ fontSize: '1rem', fontWeight: '700', color: '#22c55e' }}>
+            <span style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-success)' }}>
               ~{payoutDisplay} USDC
             </span>
           </div>
@@ -506,8 +524,8 @@ export default function MarketDetail() {
             style={{
               padding: '0.875rem', fontSize: '0.875rem', fontWeight: '700',
               fontFamily: 'var(--font-body)',
-              background: '#22c55e',
-              color: '#08090a',
+              background: 'var(--color-success)',
+              color: 'var(--color-accent-fg)',
               border: 'none',
               borderRadius: '10px', cursor: 'pointer',
               textTransform: 'uppercase',
@@ -523,7 +541,7 @@ export default function MarketDetail() {
             style={{
               padding: '0.875rem', fontSize: '0.875rem', fontWeight: '700',
               fontFamily: 'var(--font-body)',
-              background: '#ef4444',
+              background: 'var(--color-danger)',
               color: '#fff',
               border: 'none',
               borderRadius: '10px', cursor: 'pointer',
@@ -539,10 +557,10 @@ export default function MarketDetail() {
         {/* Error */}
         {tradeError && (
           <div style={{
-            background: 'rgba(239,68,68,0.1)', border: '1px solid #ef4444',
+            background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger)',
             borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem',
           }}>
-            <div style={{ fontSize: '0.6875rem', color: '#ef4444', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <div style={{ fontSize: '0.6875rem', color: 'var(--color-danger)', fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>
               Transaction Failed
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-fg)' }}>
@@ -554,20 +572,20 @@ export default function MarketDetail() {
         {/* Success */}
         {tradeSubmitted && !tradeConfirmed && (
           <div style={{
-            background: 'rgba(249,115,22,0.1)', border: '1px solid #f97316',
+            background: 'var(--color-accent-muted)', border: '1px solid var(--color-accent)',
             borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem',
           }}>
-            <div style={{ fontSize: '0.75rem', color: '#f97316', fontWeight: '600' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-accent)', fontWeight: '600' }}>
               Transaction submitted, waiting for confirmation...
             </div>
           </div>
         )}
         {tradeConfirmed && (
           <div style={{
-            background: 'rgba(34,197,94,0.1)', border: '1px solid #22c55e',
+            background: 'var(--color-success-bg)', border: '1px solid var(--color-success)',
             borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem',
           }}>
-            <div style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: '600' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>
               Transaction confirmed on-chain!
             </div>
           </div>
@@ -590,7 +608,7 @@ export default function MarketDetail() {
       background: 'var(--color-bg)', border: '1px solid var(--color-border-subtle)',
       borderRadius: '10px', padding: '1.25rem', textAlign: 'center',
     }}>
-      <div style={{ fontSize: '1rem', fontWeight: '700', color: market.outcome ? '#22c55e' : '#ef4444', marginBottom: '0.25rem' }}>
+      <div style={{ fontSize: '1rem', fontWeight: '700', color: market.outcome ? 'var(--color-success)' : 'var(--color-danger)', marginBottom: '0.25rem' }}>
         Resolved: {market.outcome ? 'YES' : 'NO'}
       </div>
       <div style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)' }}>
@@ -602,7 +620,7 @@ export default function MarketDetail() {
       background: 'var(--color-bg)', border: '1px solid var(--color-border-subtle)',
       borderRadius: '10px', padding: '1.25rem', textAlign: 'center',
     }}>
-      <div style={{ fontSize: '1rem', fontWeight: '700', color: '#ef4444', marginBottom: '0.25rem' }}>
+      <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-danger)', marginBottom: '0.25rem' }}>
         Market Cancelled
       </div>
       <div style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)' }}>
@@ -676,8 +694,8 @@ export default function MarketDetail() {
               margin: '1rem 0',
             }} />
             <div style={{
-              background: 'rgba(249, 115, 22, 0.06)',
-              border: '1px solid rgba(249, 115, 22, 0.2)',
+              background: 'var(--color-accent-muted)',
+              border: '1px solid var(--color-accent)',
               borderRadius: '10px',
               padding: '1rem',
             }}>
@@ -694,7 +712,7 @@ export default function MarketDetail() {
                   style={{
                     padding: '0.625rem', fontSize: '0.6875rem', fontWeight: '700',
                     fontFamily: 'var(--font-body)',
-                    background: '#22c55e', color: '#08090a',
+                    background: 'var(--color-success)', color: 'var(--color-accent-fg)',
                     border: 'none', borderRadius: '8px', cursor: 'pointer',
                     textTransform: 'uppercase',
                   }}
@@ -706,7 +724,7 @@ export default function MarketDetail() {
                   style={{
                     padding: '0.625rem', fontSize: '0.6875rem', fontWeight: '700',
                     fontFamily: 'var(--font-body)',
-                    background: '#ef4444', color: '#fff',
+                    background: 'var(--color-danger)', color: '#fff',
                     border: 'none', borderRadius: '8px', cursor: 'pointer',
                     textTransform: 'uppercase',
                   }}
@@ -766,7 +784,7 @@ export default function MarketDetail() {
         ) : (
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            background: 'linear-gradient(135deg, var(--color-hero-1) 0%, var(--color-hero-2) 50%, var(--color-hero-3) 100%)',
           }} />
         )}
 
@@ -985,12 +1003,12 @@ export default function MarketDetail() {
         {/* Legend */}
         <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '3px', background: '#22c55e', borderRadius: '2px', display: 'inline-block' }} />
-            <span style={{ fontSize: '0.75rem', color: '#22c55e', fontWeight: '600' }}>Yes {yesPercent}%</span>
+            <span style={{ width: '12px', height: '3px', background: 'var(--color-success)', borderRadius: '2px', display: 'inline-block' }} />
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>Yes {yesPercent}%</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '12px', height: '3px', background: '#ef4444', borderRadius: '2px', display: 'inline-block' }} />
-            <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>No {noPercent}%</span>
+            <span style={{ width: '12px', height: '3px', background: 'var(--color-danger)', borderRadius: '2px', display: 'inline-block' }} />
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>No {noPercent}%</span>
           </div>
         </div>
 
@@ -1018,14 +1036,14 @@ export default function MarketDetail() {
                   }
                   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
                 }}
-                tick={{ fontSize: 10, fill: '#71717a' }}
+                tick={{ fontSize: 10, fill: 'var(--color-fg-dim)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 domain={[0, 100]}
                 tickFormatter={(v) => `${v}%`}
-                tick={{ fontSize: 10, fill: '#71717a' }}
+                tick={{ fontSize: 10, fill: 'var(--color-fg-dim)' }}
                 axisLine={false}
                 tickLine={false}
                 width={36}
@@ -1041,8 +1059,8 @@ export default function MarketDetail() {
                   color: 'var(--color-fg)',
                 }}
               />
-              <Line type="monotone" dataKey="yes" stroke="#22c55e" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#22c55e' }} isAnimationActive={false} />
-              <Line type="monotone" dataKey="no" stroke="#ef4444" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#ef4444' }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="yes" stroke="var(--color-success)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: 'var(--color-success)' }} isAnimationActive={false} />
+              <Line type="monotone" dataKey="no" stroke="var(--color-danger)" strokeWidth={2} dot={false} activeDot={{ r: 4, fill: 'var(--color-danger)' }} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -1184,7 +1202,7 @@ export default function MarketDetail() {
           role="dialog"
           style={{
             position: 'fixed', inset: 0, zIndex: 200,
-            background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
+            background: 'var(--color-overlay)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '1rem',
           }}
@@ -1212,7 +1230,7 @@ export default function MarketDetail() {
             }}>
               Are you sure you want to resolve this market as{' '}
               <strong style={{
-                color: showResolveModal.outcome ? '#22c55e' : '#ef4444',
+                color: showResolveModal.outcome ? 'var(--color-success)' : 'var(--color-danger)',
               }}>
                 {showResolveModal.outcome ? 'YES' : 'NO'}
               </strong>
@@ -1238,8 +1256,8 @@ export default function MarketDetail() {
                   fontFamily: 'var(--font-body)',
                   background: isResolving
                     ? 'var(--color-fg-dim)'
-                    : showResolveModal.outcome ? '#22c55e' : '#ef4444',
-                  color: showResolveModal.outcome ? '#08090a' : '#fff',
+                    : showResolveModal.outcome ? 'var(--color-success)' : 'var(--color-danger)',
+                  color: showResolveModal.outcome ? 'var(--color-accent-fg)' : '#fff',
                   border: 'none', borderRadius: '8px',
                   cursor: isResolving ? 'not-allowed' : 'pointer',
                 }}
@@ -1257,7 +1275,7 @@ export default function MarketDetail() {
           role="dialog"
           style={{
             position: 'fixed', inset: 0, zIndex: 200,
-            background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
+            background: 'var(--color-overlay)', backdropFilter: 'blur(4px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '1rem',
           }}
@@ -1328,7 +1346,7 @@ export default function MarketDetail() {
                   flex: 1, padding: '0.75rem', fontSize: '0.875rem', fontWeight: '600',
                   fontFamily: 'var(--font-body)',
                   background: isCancelling || !cancelReason.trim()
-                    ? 'var(--color-fg-dim)' : '#ef4444',
+                    ? 'var(--color-fg-dim)' : 'var(--color-danger)',
                   color: '#fff',
                   border: 'none', borderRadius: '8px',
                   cursor: isCancelling || !cancelReason.trim() ? 'not-allowed' : 'pointer',

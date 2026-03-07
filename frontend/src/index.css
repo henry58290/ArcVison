@@ -7,28 +7,36 @@
 :root {
   /* Industrial/Utilitarian DApp Aesthetic */
   
-  /* Color Tokens */
-  --color-bg: #08090a;
-  --color-bg-soft: #0c0d0f;
-  --color-surface: #131417;
-  --color-surface-elevated: #1a1b1f;
-  --color-surface-hover: #222328;
+  /* ── Light theme (default) ── */
+  --color-bg: #fafafa;
+  --color-bg-soft: #f4f4f5;
+  --color-bg-rgb: 250, 250, 250;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-hover: #f4f4f5;
   
-  --color-fg: #f4f4f5;
-  --color-fg-muted: #a1a1aa;
+  --color-fg: #18181b;
+  --color-fg-muted: #52525b;
   --color-fg-dim: #71717a;
   
   --color-accent: #f97316;
   --color-accent-hover: #fb923c;
-  --color-accent-muted: #f9731633;
+  --color-accent-muted: rgba(249, 115, 22, 0.15);
+  --color-accent-fg: #08090a;
   
   --color-success: #22c55e;
-  --color-success-bg: #22c55e1a;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
   --color-danger: #ef4444;
-  --color-danger-bg: #ef44441a;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
   
-  --color-border: #27272a;
-  --color-border-subtle: #1f1f23;
+  --color-border: #e4e4e7;
+  --color-border-subtle: #f4f4f5;
+  
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-shadow: rgba(0, 0, 0, 0.08);
+  --color-hero-1: #c7d2fe;
+  --color-hero-2: #a5b4fc;
+  --color-hero-3: #818cf8;
   
   /* Typography */
   --font-display: 'Bebas Neue', sans-serif;
@@ -55,6 +63,39 @@
   --transition-fast: 150ms var(--ease-out-expo);
   --transition-normal: 250ms var(--ease-out-expo);
   --transition-slow: 400ms var(--ease-out-expo);
+}
+
+/* ── Dark theme ── */
+.dark {
+  --color-bg: #08090a;
+  --color-bg-soft: #0c0d0f;
+  --color-bg-rgb: 8, 9, 10;
+  --color-surface: #131417;
+  --color-surface-elevated: #1a1b1f;
+  --color-surface-hover: #222328;
+
+  --color-fg: #f4f4f5;
+  --color-fg-muted: #a1a1aa;
+  --color-fg-dim: #71717a;
+
+  --color-accent: #f97316;
+  --color-accent-hover: #fb923c;
+  --color-accent-muted: rgba(249, 115, 22, 0.2);
+  --color-accent-fg: #08090a;
+
+  --color-success: #22c55e;
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+
+  --color-border: #27272a;
+  --color-border-subtle: #1f1f23;
+
+  --color-overlay: rgba(0, 0, 0, 0.8);
+  --color-shadow: rgba(0, 0, 0, 0.4);
+  --color-hero-1: #1a1a2e;
+  --color-hero-2: #16213e;
+  --color-hero-3: #0f3460;
 }
 
 *, *::before, *::after {
@@ -397,7 +438,7 @@ body::before {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--color-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;

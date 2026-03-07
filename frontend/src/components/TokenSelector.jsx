@@ -105,13 +105,13 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
               width: '22px',
               height: '22px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #f97316, #fb923c)',
+              background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-hover))',
               display: selectedToken && getTokenImage(selectedToken) ? 'none' : 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '10px',
               fontWeight: '700',
-              color: '#08090a',
+              color: 'var(--color-accent-fg)',
             }}
           >
             {selectedToken?.symbol?.[0] || '?'}
@@ -138,7 +138,7 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
           borderRadius: '12px',
           zIndex: 100,
           overflow: 'hidden',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+          boxShadow: '0 20px 40px var(--color-shadow)',
         }}>
           <div style={{ padding: '1rem', borderBottom: '1px solid var(--color-border-subtle)' }}>
             <input
@@ -189,7 +189,7 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
                     alignItems: 'center',
                     gap: '0.375rem',
                     padding: '0.375rem 0.625rem',
-                    background: selectedToken?.address === token.address ? 'rgba(249, 115, 22, 0.15)' : 'var(--color-surface-elevated)',
+                    background: selectedToken?.address === token.address ? 'var(--color-accent-muted)' : 'var(--color-surface-elevated)',
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -236,7 +236,7 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
                     alignItems: 'center',
                     gap: '0.75rem',
                     padding: '0.625rem',
-                    background: selectedToken?.address === token.address ? 'rgba(249, 115, 22, 0.1)' : 'transparent',
+                    background: selectedToken?.address === token.address ? 'var(--color-accent-muted)' : 'transparent',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
@@ -305,7 +305,7 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
                   style={{
                     padding: '0.5rem 1rem',
                     background: 'var(--color-accent)',
-                    color: '#08090a',
+              color: 'var(--color-accent-fg)',
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.75rem',

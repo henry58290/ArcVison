@@ -78,11 +78,19 @@ export async function fetchMarketLogs(marketId) {
   const fromBlock = lastBlock > 0 ? lastBlock + 1 : 0;
 
   try {
+    // Encode marketId as bytes32 hex for topic1 filtering so the API
+    // only returns events for THIS market instead of all markets.
+    // Without this, pages fill with other-market events and our
+    // market's newer events become unreachable past the page limit.
+    const marketIdHex = '0x' + BigInt(marketId).toString(16).padStart(64, '0');
+
     const params = new URLSearchParams({
       module: 'logs',
       action: 'getLogs',
       address: CONTRACT_ADDRESS,
       topic0: POSITION_PLACED_TOPIC,
+      topic0_1_opr: 'and',
+      topic1: marketIdHex,
       fromBlock: String(fromBlock),
       toBlock: 'latest',
     });
@@ -97,18 +105,38 @@ export async function fetchMarketLogs(marketId) {
       return existingLogs;
     }
 
+    // Compute the highest block in the API response so we can advance
+    // our cursor past this page even if no results match this market.
+    // Prevents infinite stall when a page contains only non-matching events.
+    const apiHighBlock = json.result.reduce((max, l) => {
+      const bn = parseInt(l.blockNumber, 16);
+      return bn > max ? bn : max;
+    }, lastBlock);
+
     // Decode and filter for this market
     const newLogs = json.result
       .map(decodePositionPlacedLog)
       .filter(log => log !== null && log.marketId === Number(marketId));
 
-    if (newLogs.length === 0) return existingLogs;
+    if (newLogs.length === 0) {
+      // No matching logs in this page — advance cursor to skip past it
+      if (apiHighBlock > lastBlock) {
+        await saveLogs(marketId, existingLogs, apiHighBlock);
+      }
+      return existingLogs;
+    }
 
     // Merge with existing, deduplicate by txHash
     const seen = new Set(existingLogs.map(l => l.transactionHash));
     const uniqueNew = newLogs.filter(l => !seen.has(l.transactionHash));
 
-    if (uniqueNew.length === 0) return existingLogs;
+    if (uniqueNew.length === 0) {
+      // All "new" logs already cached — still advance cursor
+      if (apiHighBlock > lastBlock) {
+        await saveLogs(marketId, existingLogs, apiHighBlock);
+      }
+      return existingLogs;
+    }
 
     const allLogs = [...existingLogs, ...uniqueNew];
     allLogs.sort((a, b) => {
@@ -116,7 +144,7 @@ export async function fetchMarketLogs(marketId) {
       return a.transactionHash.localeCompare(b.transactionHash);
     });
 
-    const newLastBlock = Math.max(...allLogs.map(l => l.blockNumber));
+    const newLastBlock = Math.max(apiHighBlock, ...allLogs.map(l => l.blockNumber));
     await saveLogs(marketId, allLogs, newLastBlock);
 
     return allLogs;

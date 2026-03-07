@@ -89,7 +89,7 @@ function RefundButton({ marketId, userAddress }) {
           fontSize: '0.6875rem',
           fontWeight: '600',
           background: isClaimingRefund ? 'var(--color-fg-dim)' : 'var(--color-accent)',
-          color: '#08090a',
+          color: 'var(--color-accent-fg)',
           border: 'none',
           borderRadius: '4px',
           cursor: isClaimingRefund ? 'not-allowed' : 'pointer',
@@ -180,7 +180,7 @@ function ClaimWinningsButton({ marketId, userAddress, refreshKey, onClaimed }) {
           fontSize: '0.6875rem',
           fontWeight: '600',
           background: 'var(--color-success)',
-          color: '#08090a',
+          color: 'var(--color-accent-fg)',
           border: 'none',
           borderRadius: '4px',
           display: 'inline-block',
@@ -205,7 +205,7 @@ function ClaimWinningsButton({ marketId, userAddress, refreshKey, onClaimed }) {
           fontSize: '0.6875rem',
           fontWeight: '600',
           background: isClaimingWinnings ? 'var(--color-fg-dim)' : 'var(--color-success)',
-          color: '#08090a',
+          color: 'var(--color-accent-fg)',
           border: 'none',
           borderRadius: '4px',
           cursor: isClaimingWinnings ? 'not-allowed' : 'pointer',
@@ -240,7 +240,7 @@ function SimpleClaimButton({ marketId, estimatedPayout, onSuccess }) {
           fontSize: '0.6875rem',
           fontWeight: '600',
           background: isPending ? 'var(--color-fg-dim)' : 'var(--color-success)',
-          color: '#08090a',
+          color: 'var(--color-accent-fg)',
           border: 'none',
           borderRadius: '4px',
           cursor: isPending ? 'not-allowed' : 'pointer',
@@ -538,8 +538,8 @@ export default function Dashboard() {
           <div style={{ 
             marginTop: '1.5rem', 
             padding: '1rem', 
-            background: 'rgba(249, 115, 22, 0.1)', 
-            border: '1px solid #f97316', 
+            background: 'var(--color-accent-muted)', 
+            border: '1px solid var(--color-accent)', 
             borderRadius: '8px' 
           }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-accent)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>
@@ -553,7 +553,7 @@ export default function Dashboard() {
                   fontSize: '0.75rem',
                   fontWeight: '600',
                   background: 'var(--color-accent)',
-                  color: '#08090a',
+                  color: 'var(--color-accent-fg)',
                   border: 'none',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -592,7 +592,7 @@ export default function Dashboard() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   padding: '0.4rem 0.75rem',
-                  background: activeTab === tab.id ? 'rgba(249, 115, 22, 0.2)' : 'transparent',
+                  background: activeTab === tab.id ? 'var(--color-accent-muted)' : 'transparent',
                   color: activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-fg-muted)',
                   border: `1px solid ${activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-border)'}`,
                   fontSize: '0.75rem',
@@ -612,7 +612,7 @@ export default function Dashboard() {
                     marginLeft: '6px',
                     padding: '2px 6px',
                     background: tab.showBadge ? 'var(--color-accent)' : 'var(--color-border)',
-                    color: tab.showBadge ? '#08090a' : 'var(--color-fg-muted)',
+                    color: tab.showBadge ? 'var(--color-accent-fg)' : 'var(--color-fg-muted)',
                     borderRadius: '10px',
                     fontSize: '0.625rem',
                   }}>
@@ -643,7 +643,7 @@ export default function Dashboard() {
                 borderRadius: '4px',
                 cursor: 'pointer',
                 border: `1px solid ${selectedCategory === null ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                background: selectedCategory === null ? 'rgba(249, 115, 22, 0.2)' : 'transparent',
+                background: selectedCategory === null ? 'var(--color-accent-muted)' : 'transparent',
                 color: selectedCategory === null ? 'var(--color-accent)' : 'var(--color-fg-muted)',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
@@ -733,7 +733,7 @@ export default function Dashboard() {
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                       {title}
                     </h3>
-                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-success-bg)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-success)' }}>Your Bet ({claim.outcome ? 'YES' : 'NO'}):</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-fg)', fontWeight: '600' }}>{formatVolume(claim.userWinningBet)}</span>
@@ -791,7 +791,7 @@ export default function Dashboard() {
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                       {title}
                     </h3>
-                    <div style={{ padding: '0.75rem', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '4px' }}>
+                    <div style={{ padding: '0.75rem', background: 'var(--color-success-bg)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-muted)' }}>Payout Claimed:</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>{formatVolume(claim.estimatedPayout)}</span>
@@ -849,7 +849,7 @@ export default function Dashboard() {
                         "{refund.reason}"
                       </div>
                     )}
-                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-danger-bg)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-success)' }}>YES Refund:</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-fg)', fontWeight: '600' }}>{formatVolume(refund.yesRefund)}</span>
@@ -982,7 +982,7 @@ export default function Dashboard() {
 
                   {/* Resolution Result */}
                   {market.status === 1 && (
-                    <div style={{ marginBottom: '1rem', padding: '0.5rem', background: market.outcome ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', borderRadius: '4px', textAlign: 'center' }}>
+                    <div style={{ marginBottom: '1rem', padding: '0.5rem', background: market.outcome ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', borderRadius: '4px', textAlign: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: '600', color: market.outcome ? 'var(--color-success)' : 'var(--color-danger)', textTransform: 'uppercase' }}>
                         Result: {market.outcome ? "YES" : "NO"}
                       </span>
@@ -1006,7 +1006,7 @@ export default function Dashboard() {
                     const tradesAtCancel = cancelledInfo?.totalTradesAtCancel || 0n;
                     
                     return (
-                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-danger-bg)', borderRadius: '4px' }}>
                       <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)', textTransform: 'uppercase', marginBottom: '0.5rem', textAlign: 'center' }}>
                         Market Cancelled
                       </div>
@@ -1039,7 +1039,7 @@ export default function Dashboard() {
                         fontSize: '0.75rem',
                         fontWeight: '600',
                         background: 'var(--color-accent)',
-                        color: '#08090a',
+                        color: 'var(--color-accent-fg)',
                         borderRadius: '8px',
                         textTransform: 'uppercase',
                       }}>
@@ -1066,7 +1066,7 @@ export default function Dashboard() {
                           fontSize: '0.625rem',
                           fontWeight: '600',
                           background: 'var(--color-success)',
-                          color: '#08090a',
+                          color: 'var(--color-accent-fg)',
                           border: 'none',
                           borderRadius: '4px',
                           cursor: 'pointer',
@@ -1125,7 +1125,7 @@ export default function Dashboard() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'var(--color-overlay)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
@@ -1267,7 +1267,7 @@ export default function Dashboard() {
                     fontSize: '0.875rem',
                     fontWeight: '600',
                     background: isCreating ? 'var(--color-fg-dim)' : 'var(--color-accent)',
-                    color: '#08090a',
+                    color: 'var(--color-accent-fg)',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: isCreating ? 'not-allowed' : 'pointer',
@@ -1288,7 +1288,7 @@ export default function Dashboard() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'var(--color-overlay)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
@@ -1342,7 +1342,7 @@ export default function Dashboard() {
                   fontSize: '0.875rem',
                   fontWeight: '600',
                   background: isResolving ? 'var(--color-fg-dim)' : showResolveModal.outcome ? 'var(--color-success)' : 'var(--color-danger)',
-                  color: '#08090a',
+                  color: 'var(--color-accent-fg)',
                   border: 'none',
                   borderRadius: '8px',
                   cursor: isResolving ? 'not-allowed' : 'pointer',
@@ -1362,7 +1362,7 @@ export default function Dashboard() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
+            background: 'var(--color-overlay)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',

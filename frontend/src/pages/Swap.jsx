@@ -455,7 +455,7 @@ function SwapPage() {
   return (
     <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '0 1rem' }}>
-        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '1.5rem', marginBottom: '1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '1.5rem', marginBottom: '1rem', boxShadow: '0 8px 32px var(--color-shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.75rem', color: 'var(--color-fg)', letterSpacing: '0.02em', margin: 0 }}>
               Swap
@@ -475,7 +475,7 @@ function SwapPage() {
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {[0.1, 0.5, 1, 3].map((val) => (
-                  <button key={val} onClick={() => setSlippage(val)} style={{ flex: 1, padding: '0.625rem 0.5rem', background: slippage === val ? 'var(--color-accent)' : 'var(--color-surface-hover)', color: slippage === val ? '#09090b' : 'var(--color-fg)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: '600', cursor: 'pointer' }}>
+                  <button key={val} onClick={() => setSlippage(val)} style={{ flex: 1, padding: '0.625rem 0.5rem', background: slippage === val ? 'var(--color-accent)' : 'var(--color-surface-hover)', color: slippage === val ? 'var(--color-accent-fg)' : 'var(--color-fg)', border: 'none', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: '600', cursor: 'pointer' }}>
                     {val}%
                   </button>
                 ))}
@@ -553,7 +553,7 @@ function SwapPage() {
           )}
 
           {!canSwap && fromAmount && parseFloat(fromAmount) > 0 && !outputAmount && (
-            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-danger-bg)', borderRadius: '8px', textAlign: 'center' }}>
               <span style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', fontWeight: '500' }}>
                 {isSameToken ? t("sameToken") : t("noLiquidity")}
               </span>
@@ -561,27 +561,27 @@ function SwapPage() {
           )}
 
           {!isConnected ? (
-            <button style={{ width: '100%', padding: '1rem', background: 'var(--color-accent)', color: '#09090b', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: 'pointer' }}>
+            <button style={{ width: '100%', padding: '1rem', background: 'var(--color-accent)', color: 'var(--color-accent-fg)', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t("connectWallet")}
             </button>
           ) : needsApproval ? (
-            <button onClick={handleApprove} disabled={isApproving || pendingApproveHash} style={{ width: '100%', padding: '1rem', background: 'var(--color-accent)', color: '#09090b', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: (isApproving || pendingApproveHash) ? 'not-allowed' : 'pointer', opacity: (isApproving || pendingApproveHash) ? 0.7 : 1 }}>
+            <button onClick={handleApprove} disabled={isApproving || pendingApproveHash} style={{ width: '100%', padding: '1rem', background: 'var(--color-accent)', color: 'var(--color-accent-fg)', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: (isApproving || pendingApproveHash) ? 'not-allowed' : 'pointer', opacity: (isApproving || pendingApproveHash) ? 0.7 : 1 }}>
               {isApproving ? t("approving") : pendingApproveHash ? t("waitingConfirm") : `${t("approve")} ${fromToken.symbol}`}
             </button>
           ) : (
-            <button onClick={handleSwap} disabled={isSwapping || !canSwap} style={{ width: '100%', padding: '1rem', background: !canSwap ? 'var(--color-fg-dim)' : 'var(--color-success)', color: '#09090b', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: !canSwap ? 'not-allowed' : 'pointer', opacity: isSwapping ? 0.7 : 1 }}>
+            <button onClick={handleSwap} disabled={isSwapping || !canSwap} style={{ width: '100%', padding: '1rem', background: !canSwap ? 'var(--color-fg-dim)' : 'var(--color-success)', color: 'var(--color-accent-fg)', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', textTransform: 'uppercase', cursor: !canSwap ? 'not-allowed' : 'pointer', opacity: isSwapping ? 0.7 : 1 }}>
               {isSwapping ? t("swapping") : t("swap")}
             </button>
           )}
 
           {swapError && (
-            <div style={{ marginTop: '0.875rem', padding: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px' }}>
+            <div style={{ marginTop: '0.875rem', padding: '0.75rem', background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger)', borderRadius: '8px' }}>
               <span style={{ color: 'var(--color-danger)', fontSize: '0.8125rem' }}>{swapError}</span>
             </div>
           )}
 
           {swapSuccess && (
-            <div style={{ marginTop: '0.875rem', padding: '0.75rem', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px' }}>
+            <div style={{ marginTop: '0.875rem', padding: '0.75rem', background: 'var(--color-success-bg)', border: '1px solid var(--color-success)', borderRadius: '8px' }}>
               <span style={{ color: 'var(--color-success)', fontSize: '0.8125rem', fontWeight: '600' }}>✓ {t("swapComplete")}</span>
             </div>
           )}

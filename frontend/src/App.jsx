@@ -8,7 +8,7 @@ import Swap from "./pages/Swap";
 function App() {
   return (
     <BrowserRouter>
-      <div style={{ minHeight: '100vh', background: '#08090a' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
         <Navbar />
         <Routes>
           <Route path="/" element={<Dashboard />} />

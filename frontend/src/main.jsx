@@ -38,8 +38,8 @@ if (!wcProjectId) {
     <div
       style={{
         minHeight: '100vh',
-        background: '#0f172a',
-        color: 'white',
+        background: 'var(--color-bg)',
+        color: 'var(--color-fg)',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -52,23 +52,23 @@ if (!wcProjectId) {
         <h1 style={{ marginTop: 0, marginBottom: 12 }}>
           Missing WalletConnect Project ID
         </h1>
-        <p style={{ color: '#94a3b8', marginTop: 0, marginBottom: 12 }}>
+        <p style={{ color: 'var(--color-fg-muted)', marginTop: 0, marginBottom: 12 }}>
           Create a free project ID at Reown (WalletConnect) and set it in your
           frontend environment.
         </p>
         <pre
           style={{
-            background: '#111827',
+            background: 'var(--color-surface)',
             padding: 12,
             borderRadius: 8,
-            border: '1px solid #334155',
+            border: '1px solid var(--color-border)',
             overflowX: 'auto',
-            color: 'white',
+            color: 'var(--color-fg)',
           }}
         >
           VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
         </pre>
-        <p style={{ color: '#94a3b8', marginBottom: 0 }}>
+        <p style={{ color: 'var(--color-fg-muted)', marginBottom: 0 }}>
           Put it in <code>.env</code> (see <code>.env.example</code>), then
           restart <code>npm run dev</code>.
         </p>

@@ -51,7 +51,7 @@ function Navbar() {
         left: 0,
         right: 0,
         zIndex: 100,
-        background: 'rgba(var(--color-bg-rgb, 8, 9, 10), 0.9)',
+        background: 'rgba(var(--color-bg-rgb), 0.9)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
@@ -105,7 +105,7 @@ function Navbar() {
                   textDecoration: 'none',
                   textTransform: 'uppercase',
                   letterSpacing: '0.02em',
-                  background: location.pathname === link.path ? 'rgba(249, 115, 22, 0.1)' : 'transparent',
+                  background: location.pathname === link.path ? 'var(--color-accent-muted)' : 'transparent',
                   borderRadius: '8px',
                   transition: 'all 0.15s ease',
                 }}
@@ -157,7 +157,7 @@ function Navbar() {
                   border: '1px solid var(--color-border)',
                   borderRadius: '12px',
                   padding: '8px',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '0 8px 32px var(--color-shadow)',
                   zIndex: 200,
                   animation: 'scaleIn 0.15s ease',
                 }}
@@ -181,7 +181,7 @@ function Navbar() {
                     gap: '10px',
                     width: '100%',
                     padding: '10px 12px',
-                    background: theme === 'light' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    background: theme === 'light' ? 'var(--color-accent-muted)' : 'transparent',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
@@ -220,7 +220,7 @@ function Navbar() {
                     gap: '10px',
                     width: '100%',
                     padding: '10px 12px',
-                    background: theme === 'dark' ? 'rgba(249, 115, 22, 0.15)' : 'transparent',
+                    background: theme === 'dark' ? 'var(--color-accent-muted)' : 'transparent',
                     border: 'none',
                     borderRadius: '8px',
                     cursor: 'pointer',
@@ -300,7 +300,7 @@ function Navbar() {
                               borderRadius: '8px',
                               cursor: 'pointer',
                               background: 'var(--color-accent)',
-                              color: '#08090a',
+                              color: 'var(--color-accent-fg)',
                               minHeight: '40px',
                             }}
                           >
@@ -413,7 +413,7 @@ function Navbar() {
             top: '72px',
             left: 0,
             right: 0,
-            background: 'rgba(var(--color-bg-rgb, 8, 9, 10), 0.98)',
+            background: 'rgba(var(--color-bg-rgb), 0.98)',
             borderBottom: '1px solid var(--color-border-subtle)',
             padding: '1rem',
           }}
@@ -432,7 +432,7 @@ function Navbar() {
                 textDecoration: 'none',
                 textTransform: 'uppercase',
                 letterSpacing: '0.02em',
-                background: location.pathname === link.path ? 'rgba(249, 115, 22, 0.1)' : 'transparent',
+                background: location.pathname === link.path ? 'var(--color-accent-muted)' : 'transparent',
                 borderRadius: '8px',
                 marginBottom: '0.5rem',
               }}
@@ -468,7 +468,7 @@ function Navbar() {
                   justifyContent: 'center',
                   gap: '8px',
                   padding: '10px',
-                  background: theme === 'light' ? 'rgba(249, 115, 22, 0.15)' : 'var(--color-surface)',
+                  background: theme === 'light' ? 'var(--color-accent-muted)' : 'var(--color-surface)',
                   border: theme === 'light' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -488,7 +488,7 @@ function Navbar() {
                   justifyContent: 'center',
                   gap: '8px',
                   padding: '10px',
-                  background: theme === 'dark' ? 'rgba(249, 115, 22, 0.15)' : 'var(--color-surface)',
+                  background: theme === 'dark' ? 'var(--color-accent-muted)' : 'var(--color-surface)',
                   border: theme === 'dark' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
                   borderRadius: '8px',
                   cursor: 'pointer',
@@ -538,7 +538,7 @@ function Navbar() {
                         borderRadius: '8px',
                         cursor: 'pointer',
                         background: 'var(--color-accent)',
-                        color: '#08090a',
+                        color: 'var(--color-accent-fg)',
                       }}
                     >
                       Connect Wallet
