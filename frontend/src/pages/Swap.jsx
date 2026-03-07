@@ -61,7 +61,7 @@ function SwapPage() {
   const connectWalletPrompt = 'Please connect your wallet';
   const enterAmount = 'Please enter an amount';
   const [fromToken, setFromToken] = useState(TOKENS.USDC);
-  const [toToken, setToToken] = useState(TOKENS.APD);
+  const [toToken, setToToken] = useState(TOKENS.AVN);
   const [fromAmount, setFromAmount] = useState('');
   const [slippage, setSlippage] = useState(0.5);
   const [showSettings, setShowSettings] = useState(false);
@@ -74,6 +74,10 @@ function SwapPage() {
   const isToNative = toTokenAddress === NATIVE_ADDRESS;
 
   const wUSDC_ADDRESS = TOKEN_ADDRESSES.wUSDC;
+
+  // Use wrapped address for factory lookups (factory only knows ERC20 pairs, not native 0x0)
+  const factoryFromAddr = isFromNative ? wUSDC_ADDRESS : fromTokenAddress;
+  const factoryToAddr = isToNative ? wUSDC_ADDRESS : toTokenAddress;
 
   const { data: nativeBalance, refetch: refetchNativeBalance } = useBalance({
     address: address,
@@ -132,21 +136,21 @@ function SwapPage() {
     address: DEX_CONSTANTS.factory,
     abi: FACTORY_ABI,
     functionName: 'getPair',
-    args: [fromTokenAddress, toTokenAddress],
+    args: [factoryFromAddr, factoryToAddr],
   });
 
   const { data: viaUSDCPair1 } = useReadContract({
     address: DEX_CONSTANTS.factory,
     abi: FACTORY_ABI,
     functionName: 'getPair',
-    args: [fromTokenAddress, wUSDC_ADDRESS],
+    args: [factoryFromAddr, wUSDC_ADDRESS],
   });
 
   const { data: viaUSDCPair2 } = useReadContract({
     address: DEX_CONSTANTS.factory,
     abi: FACTORY_ABI,
     functionName: 'getPair',
-    args: [wUSDC_ADDRESS, toTokenAddress],
+    args: [wUSDC_ADDRESS, factoryToAddr],
   });
 
   const { data: directReserves } = useReadContract({
@@ -223,7 +227,7 @@ function SwapPage() {
     functionName: 'getAmountsOut',
     args: fromAmount && parseFloat(fromAmount) > 0 ? [parseUnits(fromAmount, 18), swapPath] : undefined,
     query: {
-      enabled: !!fromAmount && parseFloat(fromAmount) > 0 && swapPath.length >= 2,
+      enabled: !!fromAmount && parseFloat(fromAmount) > 0 && !!swapPath && swapPath.length >= 2,
     }
   });
 
@@ -275,11 +279,16 @@ function SwapPage() {
     
     let reserveIn, reserveOut;
     if (directPairAddress && directPairAddress !== NATIVE_ADDRESS && directReserves) {
-      reserveIn = directReserves[0];
-      reserveOut = directReserves[1];
+      // Uniswap V2 pairs return reserves in token0/token1 order (sorted by address)
+      const fromIsToken0 = factoryFromAddr.toLowerCase() < factoryToAddr.toLowerCase();
+      reserveIn = fromIsToken0 ? directReserves[0] : directReserves[1];
+      reserveOut = fromIsToken0 ? directReserves[1] : directReserves[0];
     } else if (viaUSDCPair1 && viaUSDCPair1 !== NATIVE_ADDRESS && viaUSDCPair2 && viaUSDCPair2 !== NATIVE_ADDRESS && viaReserves1 && viaReserves2) {
-      reserveIn = viaReserves1[0];
-      reserveOut = viaReserves2[1];
+      // For multi-hop via wUSDC, determine ordering for each pair
+      const fromIsToken0InPair1 = factoryFromAddr.toLowerCase() < wUSDC_ADDRESS.toLowerCase();
+      reserveIn = fromIsToken0InPair1 ? viaReserves1[0] : viaReserves1[1];
+      const wusdcIsToken0InPair2 = wUSDC_ADDRESS.toLowerCase() < factoryToAddr.toLowerCase();
+      reserveOut = wusdcIsToken0InPair2 ? viaReserves2[1] : viaReserves2[0];
     } else {
       return null;
     }
@@ -291,7 +300,7 @@ function SwapPage() {
     
     if (midPrice === 0) return null;
     return ((midPrice - executionPrice) / midPrice) * 100;
-  }, [canSwap, directPairAddress, directReserves, viaUSDCPair1, viaUSDCPair2, viaReserves1, viaReserves2, outputAmount, fromAmount]);
+  }, [canSwap, directPairAddress, directReserves, viaUSDCPair1, viaUSDCPair2, viaReserves1, viaReserves2, outputAmount, fromAmount, factoryFromAddr, factoryToAddr, wUSDC_ADDRESS]);
 
   const minReceive = useMemo(() => {
     if (!outputAmount) return null;

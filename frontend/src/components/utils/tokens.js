@@ -8,7 +8,7 @@ export const DEX_CONSTANTS = {
 export const TOKEN_ADDRESSES = {
   USDC: '0x0000000000000000000000000000000000000000',
   wUSDC: '0xDe5DB9049a8dd344dC1B7Bbb098f9da60930A6dA',
-  APD: '0x5A7BF3fFc172Ee0867415e1d14c62eCbA2cCccDD',
+  AVN: '0x83A06C4976bF8e3479d33CC8af002F511c06db8B',
 };
 
 export const TOKENS = {
@@ -28,12 +28,12 @@ export const TOKENS = {
     logo: '/logos/wusdc.png',
     isNative: false,
   },
-  APD: {
-    address: TOKEN_ADDRESSES.APD,
-    symbol: 'APD',
-    name: 'APD Token',
+  AVN: {
+    address: TOKEN_ADDRESSES.AVN,
+    symbol: 'AVN',
+    name: 'AVN Token',
     decimals: 18,
-    logo: '/logos/apd.png',
+    logo: '/logos/avn.png',
     isNative: false,
   },
 };
@@ -41,7 +41,7 @@ export const TOKENS = {
 export const DEFAULT_TOKEN_LIST = [
   TOKENS.USDC,
   TOKENS.wUSDC,
-  TOKENS.APD,
+  TOKENS.AVN,
 ];
 
 export const ROUTER_ABI = [

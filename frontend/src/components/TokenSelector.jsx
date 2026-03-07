@@ -48,7 +48,7 @@ function TokenSelector({ selectedToken, onSelect, label, style }) {
     if (token.logo) return token.logo;
     if (token.symbol === 'USDC') return '/logos/usdc.png';
     if (token.symbol === 'wUSDC') return '/logos/wusdc.png';
-    if (token.symbol === 'APD') return '/logos/apd.png';
+    if (token.symbol === 'AVN') return '/logos/avn.png';
     return null;
   };
 
