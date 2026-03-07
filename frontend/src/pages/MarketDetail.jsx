@@ -621,13 +621,11 @@ export default function MarketDetail() {
       style={{
         ...(isMobile
           ? {
-              position: 'fixed', bottom: 0, left: 0, right: 0,
-              zIndex: 50,
               background: 'var(--color-surface)',
-              borderTop: '1px solid var(--color-border-subtle)',
-              padding: '1rem 1rem calc(1rem + env(safe-area-inset-bottom))',
-              maxHeight: '55vh',
-              overflowY: 'auto',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginBottom: '2rem',
             }
           : {
               width: LEFT_COL_WIDTH, minWidth: LEFT_COL_WIDTH,
@@ -1078,7 +1076,7 @@ export default function MarketDetail() {
         border: '1px solid var(--color-border-subtle)',
         borderRadius: '10px',
         padding: '1.25rem',
-        marginBottom: isMobile ? '200px' : '2rem', // extra bottom space on mobile for pinned trade panel
+        marginBottom: '2rem',
       }}>
         <button
           onClick={() => setAboutExpanded(!aboutExpanded)}

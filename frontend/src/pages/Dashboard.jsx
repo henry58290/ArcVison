@@ -532,7 +532,7 @@ export default function Dashboard() {
   return (
     <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
       {/* Hero Section */}
-      <section style={{ marginBottom: '3rem', maxWidth: '1400px', margin: '0 auto', padding: '0 1rem' }}>
+      <section style={{ maxWidth: '1400px', margin: '0 auto 3rem', padding: '0 1rem' }}>
         {/* Admin Controls */}
         {isOwner && (
           <div style={{ 
@@ -1026,7 +1026,7 @@ export default function Dashboard() {
                   })()}
 
                   {/* Footer */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid #1f1f23' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)' }}>
                       {market.status === 2 
                         ? `Volume: ${formatVolume((cancelledMarketInfo[market.marketId]?.totalYesAtCancel || 0n) + (cancelledMarketInfo[market.marketId]?.totalNoAtCancel || 0n))}`
@@ -1057,7 +1057,7 @@ export default function Dashboard() {
 
                   {/* Admin Resolve Button */}
                   {isOwner && market.status === 0 && (
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #1f1f23', display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', gap: '0.5rem' }}>
                       <button
                         onClick={(e) => { e.stopPropagation(); setShowResolveModal({ marketId: market.marketId, outcome: true }); }}
                         style={{
@@ -1138,7 +1138,7 @@ export default function Dashboard() {
           <div 
             style={{ 
               background: 'var(--color-surface-elevated)', 
-              border: '1px solid #27272a', 
+              border: '1px solid var(--color-border)', 
               borderRadius: '16px', 
               padding: '2rem',
               width: '100%',
@@ -1163,9 +1163,9 @@ export default function Dashboard() {
                     width: '100%',
                     padding: '0.75rem',
                     fontSize: '0.875rem',
-                    background: '#08090a',
+                    background: 'var(--color-bg)',
                     color: 'var(--color-fg)',
-                    border: '1px solid #27272a',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '8px',
                     boxSizing: 'border-box',
                   }}
@@ -1184,9 +1184,9 @@ export default function Dashboard() {
                     width: '100%',
                     padding: '0.75rem',
                     fontSize: '0.875rem',
-                    background: '#08090a',
+                    background: 'var(--color-bg)',
                     color: 'var(--color-fg)',
-                    border: '1px solid #27272a',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '8px',
                     boxSizing: 'border-box',
                   }}
@@ -1203,9 +1203,9 @@ export default function Dashboard() {
                     width: '100%',
                     padding: '0.75rem',
                     fontSize: '0.875rem',
-                    background: '#08090a',
+                    background: 'var(--color-bg)',
                     color: 'var(--color-fg)',
-                    border: '1px solid #27272a',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '8px',
                     boxSizing: 'border-box',
                   }}
@@ -1228,9 +1228,9 @@ export default function Dashboard() {
                     width: '100%',
                     padding: '0.75rem',
                     fontSize: '0.875rem',
-                    background: '#08090a',
+                    background: 'var(--color-bg)',
                     color: 'var(--color-fg)',
-                    border: '1px solid #27272a',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '8px',
                     boxSizing: 'border-box',
                   }}
@@ -1301,7 +1301,7 @@ export default function Dashboard() {
           <div 
             style={{ 
               background: 'var(--color-surface-elevated)', 
-              border: '1px solid #27272a', 
+              border: '1px solid var(--color-border)', 
               borderRadius: '16px', 
               padding: '2rem',
               width: '100%',
@@ -1375,7 +1375,7 @@ export default function Dashboard() {
           <div 
             style={{ 
               background: 'var(--color-surface-elevated)', 
-              border: '1px solid #27272a', 
+              border: '1px solid var(--color-border)', 
               borderRadius: '16px', 
               padding: '2rem',
               width: '100%',
@@ -1402,9 +1402,9 @@ export default function Dashboard() {
                   width: '100%',
                   padding: '0.75rem',
                   fontSize: '0.875rem',
-                  background: '#08090a',
+                  background: 'var(--color-bg)',
                   color: 'var(--color-fg)',
-                  border: '1px solid #27272a',
+                  border: '1px solid var(--color-border)',
                   borderRadius: '8px',
                   boxSizing: 'border-box',
                 }}

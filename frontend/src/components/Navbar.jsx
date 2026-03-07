@@ -115,28 +115,7 @@ function Navbar() {
             ))}
           </div>
 
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              display: 'none',
-              padding: '0.5rem',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-fg)',
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              {mobileMenuOpen ? (
-                <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              ) : (
-                <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              )}
-            </svg>
-          </button>
-
-          <div ref={settingsRef} style={{ position: 'relative' }}>
+          <div className="desktop-only" ref={settingsRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setSettingsOpen(!settingsOpen)}
               style={{
@@ -276,129 +255,152 @@ function Navbar() {
             )}
           </div>
 
-          <ConnectButton.Custom>
-            {({
-              account,
-              chain,
-              openAccountModal,
-              openChainModal,
-              openConnectModal,
-              mounted,
-            }) => {
-              const ready = mounted;
-              const connected = ready && account && chain;
+          <div className="desktop-only">
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                mounted,
+              }) => {
+                const ready = mounted;
+                const connected = ready && account && chain;
 
-              return (
-                <div
-                  {...(!ready && {
-                    'aria-hidden': true,
-                    style: {
-                      opacity: 0,
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    },
-                  })}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  {(() => {
-                    if (!connected) {
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      style: {
+                        opacity: 0,
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                      },
+                    })}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    {(() => {
+                      if (!connected) {
+                        return (
+                          <button
+                            onClick={openConnectModal}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.5rem',
+                              padding: '0.5rem 1.5rem',
+                              fontFamily: 'IBM Plex Mono, monospace',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              letterSpacing: '0.02em',
+                              textTransform: 'uppercase',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              background: 'var(--color-accent)',
+                              color: '#08090a',
+                              minHeight: '40px',
+                            }}
+                          >
+                            Connect Wallet
+                          </button>
+                        );
+                      }
+
+                      if (chain.unsupported) {
+                        return (
+                          <button
+                            onClick={openChainModal}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.5rem',
+                              padding: '0.5rem 1.5rem',
+                              fontFamily: 'IBM Plex Mono, monospace',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              letterSpacing: '0.02em',
+                              textTransform: 'uppercase',
+                              border: 'none',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              background: 'var(--color-danger)',
+                              color: 'white',
+                              minHeight: '40px',
+                            }}
+                          >
+                            Wrong Network
+                          </button>
+                        );
+                      }
+
                       return (
                         <button
-                          onClick={openConnectModal}
+                          onClick={openAccountModal}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '0.5rem',
+                            gap: '8px',
                             padding: '0.5rem 1.5rem',
                             fontFamily: 'IBM Plex Mono, monospace',
                             fontSize: '0.875rem',
                             fontWeight: '600',
                             letterSpacing: '0.02em',
                             textTransform: 'uppercase',
-                            border: 'none',
+                            border: '1px solid var(--color-border)',
                             borderRadius: '8px',
                             cursor: 'pointer',
-                            background: 'var(--color-accent)',
-                            color: '#08090a',
+                            background: 'var(--color-surface-elevated)',
+                            color: 'var(--color-fg)',
                             minHeight: '40px',
                           }}
                         >
-                          Connect Wallet
+                          <span
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: 'var(--color-success)',
+                            }}
+                            aria-hidden="true"
+                          />
+                          {account.displayName}
+                          {account.displayBalance
+                            ? ` (${account.displayBalance})`
+                            : ''}
                         </button>
                       );
-                    }
+                    })()}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
+          </div>
 
-                    if (chain.unsupported) {
-                      return (
-                        <button
-                          onClick={openChainModal}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            padding: '0.5rem 1.5rem',
-                            fontFamily: 'IBM Plex Mono, monospace',
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            letterSpacing: '0.02em',
-                            textTransform: 'uppercase',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            background: 'var(--color-danger)',
-                            color: 'white',
-                            minHeight: '40px',
-                          }}
-                        >
-                          Wrong Network
-                        </button>
-                      );
-                    }
-
-                    return (
-                      <button
-                        onClick={openAccountModal}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px',
-                          padding: '0.5rem 1.5rem',
-                          fontFamily: 'IBM Plex Mono, monospace',
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          letterSpacing: '0.02em',
-                          textTransform: 'uppercase',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          background: 'var(--color-surface-elevated)',
-                          color: 'var(--color-fg)',
-                          minHeight: '40px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: 'var(--color-success)',
-                          }}
-                          aria-hidden="true"
-                        />
-                        {account.displayName}
-                        {account.displayBalance
-                          ? ` (${account.displayBalance})`
-                          : ''}
-                      </button>
-                    );
-                  })()}
-                </div>
-              );
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{
+              display: 'none',
+              padding: '0.5rem',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-fg)',
             }}
-          </ConnectButton.Custom>
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              {mobileMenuOpen ? (
+                <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              ) : (
+                <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              )}
+            </svg>
+          </button>
         </div>
       </nav>
 
@@ -438,6 +440,180 @@ function Navbar() {
               {link.label}
             </Link>
           ))}
+
+          {/* Theme toggle in mobile drawer */}
+          <div style={{
+            borderTop: '1px solid var(--color-border-subtle)',
+            marginTop: '0.5rem',
+            paddingTop: '0.75rem',
+          }}>
+            <p style={{
+              fontSize: '0.6875rem',
+              fontWeight: '600',
+              color: 'var(--color-fg-dim)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              padding: '0 1rem 0.5rem',
+              margin: 0,
+            }}>
+              Theme
+            </p>
+            <div style={{ display: 'flex', gap: '8px', padding: '0 1rem' }}>
+              <button
+                onClick={() => { setThemeMode('light'); }}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px',
+                  background: theme === 'light' ? 'rgba(249, 115, 22, 0.15)' : 'var(--color-surface)',
+                  border: theme === 'light' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  color: theme === 'light' ? 'var(--color-accent)' : 'var(--color-fg-muted)',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                }}
+              >
+                Light
+              </button>
+              <button
+                onClick={() => { setThemeMode('dark'); }}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  padding: '10px',
+                  background: theme === 'dark' ? 'rgba(249, 115, 22, 0.15)' : 'var(--color-surface)',
+                  border: theme === 'dark' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  color: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-fg-muted)',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                }}
+              >
+                Dark
+              </button>
+            </div>
+          </div>
+
+          {/* Wallet connect in mobile drawer */}
+          <div style={{ padding: '0.75rem 1rem 0' }}>
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                mounted,
+              }) => {
+                const ready = mounted;
+                const connected = ready && account && chain;
+
+                if (!ready) return null;
+
+                if (!connected) {
+                  return (
+                    <button
+                      onClick={() => { openConnectModal(); setMobileMenuOpen(false); }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        width: '100%',
+                        padding: '0.75rem',
+                        fontFamily: 'IBM Plex Mono, monospace',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        letterSpacing: '0.02em',
+                        textTransform: 'uppercase',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        background: 'var(--color-accent)',
+                        color: '#08090a',
+                      }}
+                    >
+                      Connect Wallet
+                    </button>
+                  );
+                }
+
+                if (chain.unsupported) {
+                  return (
+                    <button
+                      onClick={() => { openChainModal(); setMobileMenuOpen(false); }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        width: '100%',
+                        padding: '0.75rem',
+                        fontFamily: 'IBM Plex Mono, monospace',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        letterSpacing: '0.02em',
+                        textTransform: 'uppercase',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        background: 'var(--color-danger)',
+                        color: 'white',
+                      }}
+                    >
+                      Wrong Network
+                    </button>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => { openAccountModal(); setMobileMenuOpen(false); }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      padding: '0.75rem',
+                      fontFamily: 'IBM Plex Mono, monospace',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      letterSpacing: '0.02em',
+                      textTransform: 'uppercase',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      background: 'var(--color-surface-elevated)',
+                      color: 'var(--color-fg)',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: 'var(--color-success)',
+                      }}
+                      aria-hidden="true"
+                    />
+                    {account.displayName}
+                    {account.displayBalance
+                      ? ` (${account.displayBalance})`
+                      : ''}
+                  </button>
+                );
+              }}
+            </ConnectButton.Custom>
+          </div>
         </div>
       )}
 
@@ -453,7 +629,8 @@ function Navbar() {
           }
         }
         @media (max-width: 768px) {
-          .desktop-nav {
+          .desktop-nav,
+          .desktop-only {
             display: none !important;
           }
           .mobile-menu-btn {
