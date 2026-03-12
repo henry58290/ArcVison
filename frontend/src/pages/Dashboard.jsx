@@ -10,15 +10,21 @@ const MarketStatus = { 0: "Open", 1: "Resolved", 2: "Cancelled" };
 const IMAGE_SEPARATOR = "||";
 const DEFAULT_PLACEHOLDER = "https://placehold.co/600x400/1a1a2e/666666?text=No+Image";
 
+function parseTitle(raw) {
+  const parts = raw.split(":::");
+  if (parts.length === 2) return { title: parts[0].trim(), subcategory: parts[1].trim() };
+  return { title: raw, subcategory: null };
+}
+
 function parseMarketTitle(rawTitle) {
   if (!rawTitle || typeof rawTitle !== "string") {
-    return { title: "", imageUrl: null };
+    return { title: "", imageUrl: null, subcategory: null };
   }
-  const parts = rawTitle.split(IMAGE_SEPARATOR);
-  if (parts.length >= 2 && parts[1].trim()) {
-    return { title: parts[0].trim(), imageUrl: parts[1].trim() };
-  }
-  return { title: rawTitle, imageUrl: null };
+  const imgParts = rawTitle.split(IMAGE_SEPARATOR);
+  const imageUrl = imgParts.length >= 2 && imgParts[1].trim() ? imgParts[1].trim() : null;
+  const titleRaw = imgParts[0].trim();
+  const { title, subcategory } = parseTitle(titleRaw);
+  return { title, imageUrl, subcategory };
 }
 
 function formatTimeLeft(endTime) {
@@ -260,12 +266,13 @@ export default function Dashboard() {
   const [showResolveModal, setShowResolveModal] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
-  const [newMarket, setNewMarket] = useState({ question: "", duration: "604800", imageUrl: "", category: "0" });
+  const [newMarket, setNewMarket] = useState({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
   const [refreshKey, setRefreshKey] = useState(0);
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
   const [marketCache, setMarketCache] = useState({});
   const [activeTab, setActiveTab] = useState("open");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   
   useEffect(() => {
@@ -394,7 +401,7 @@ export default function Dashboard() {
       setShowResolveModal(null);
       setShowCancelModal(null);
       setCancelReason("");
-      setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0" });
+      setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
     }
   }, [createConfirmed, resolveConfirmed, cancelConfirmed, refundConfirmed, winningsConfirmed]);
 
@@ -428,7 +435,7 @@ export default function Dashboard() {
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
-    setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0" });
+    setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
   };
 
   const isOwner = owner && address && owner.toLowerCase() === address.toLowerCase();
@@ -445,9 +452,12 @@ export default function Dashboard() {
   const handleCreateMarket = (e) => {
     e.preventDefault();
     if (!newMarket.question || !newMarket.duration) return;
-    const encodedTitle = newMarket.imageUrl && newMarket.imageUrl.trim()
-      ? `${newMarket.question.trim()}${IMAGE_SEPARATOR}${newMarket.imageUrl.trim()}`
+    const questionWithSub = newMarket.subcategory && newMarket.subcategory.trim()
+      ? `${newMarket.question.trim()}:::${newMarket.subcategory.trim()}`
       : newMarket.question.trim();
+    const encodedTitle = newMarket.imageUrl && newMarket.imageUrl.trim()
+      ? `${questionWithSub}${IMAGE_SEPARATOR}${newMarket.imageUrl.trim()}`
+      : questionWithSub;
     createMarketWrite({
       address: CONTRACT_ADDRESS,
       abi: CONTRACT_ABI,
@@ -517,6 +527,38 @@ export default function Dashboard() {
     }));
   }, []);
 
+  const availableSubcategories = useMemo(() => {
+    if (selectedCategory === null) return [];
+    if (activeTab === 'claims' || activeTab === 'cancelled') return [];
+    let categoryMarkets;
+    if (activeTab === 'open') categoryMarkets = markets.filter(m => m.status === 0 && Number(m.category) === selectedCategory);
+    else if (activeTab === 'resolved') categoryMarkets = markets.filter(m => m.status === 1 && Number(m.category) === selectedCategory);
+    else categoryMarkets = markets.filter(m => Number(m.category) === selectedCategory);
+    const subs = new Set();
+    categoryMarkets.forEach(m => {
+      const { subcategory } = parseMarketTitle(m.question);
+      if (subcategory) subs.add(subcategory);
+    });
+    return Array.from(subs).sort();
+  }, [markets, activeTab, selectedCategory]);
+
+  const subcategoryCounts = useMemo(() => {
+    if (selectedCategory === null) return {};
+    if (activeTab === 'claims' || activeTab === 'cancelled') return {};
+    let categoryMarkets;
+    if (activeTab === 'open') categoryMarkets = markets.filter(m => m.status === 0 && Number(m.category) === selectedCategory);
+    else if (activeTab === 'resolved') categoryMarkets = markets.filter(m => m.status === 1 && Number(m.category) === selectedCategory);
+    else categoryMarkets = markets.filter(m => Number(m.category) === selectedCategory);
+    const counts = {};
+    categoryMarkets.forEach(m => {
+      const { subcategory } = parseMarketTitle(m.question);
+      if (subcategory) {
+        counts[subcategory] = (counts[subcategory] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [markets, activeTab, selectedCategory]);
+
   const filteredMarkets = useMemo(() => {
     if (activeTab === 'claims' || activeTab === 'cancelled') return [];
     let result;
@@ -526,8 +568,14 @@ export default function Dashboard() {
     if (selectedCategory !== null) {
       result = result.filter(m => Number(m.category) === selectedCategory);
     }
+    if (selectedSubcategory !== null) {
+      result = result.filter(m => {
+        const { subcategory } = parseMarketTitle(m.question);
+        return subcategory === selectedSubcategory;
+      });
+    }
     return result;
-  }, [markets, activeTab, selectedCategory]);
+  }, [markets, activeTab, selectedCategory, selectedSubcategory]);
 
   return (
     <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
@@ -626,6 +674,7 @@ export default function Dashboard() {
 
         {/* Category Filters — visible on Open / Resolved tabs */}
         {(activeTab === 'open' || activeTab === 'resolved') && (
+          <>
           <div style={{
             display: 'flex', gap: '0.375rem', marginBottom: '1.5rem',
             overflowX: 'auto', WebkitOverflowScrolling: 'touch',
@@ -633,7 +682,7 @@ export default function Dashboard() {
             paddingBottom: '2px', flexWrap: 'wrap',
           }}>
             <button
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => { setSelectedCategory(null); setSelectedSubcategory(null); }}
               style={{
                 padding: '0.3rem 0.65rem',
                 fontSize: '0.6875rem',
@@ -654,7 +703,14 @@ export default function Dashboard() {
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                onClick={() => {
+                  if (selectedCategory === cat.id) {
+                    setSelectedCategory(null);
+                  } else {
+                    setSelectedCategory(cat.id);
+                  }
+                  setSelectedSubcategory(null);
+                }}
                 style={{
                   padding: '0.3rem 0.65rem',
                   fontSize: '0.6875rem',
@@ -674,7 +730,165 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
+
+          {/* Subcategory Filters — chips visible on mobile only */}
+          {selectedCategory !== null && availableSubcategories.length > 0 && (
+            <div className="subcategory-chips--desktop-hidden" style={{
+              display: 'flex', gap: '0.375rem', marginBottom: '1.5rem',
+              overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none', msOverflowStyle: 'none',
+              paddingBottom: '2px', flexWrap: 'wrap',
+            }}>
+              <button
+                onClick={() => setSelectedSubcategory(null)}
+                style={{
+                  padding: '0.25rem 0.55rem',
+                  fontSize: '0.625rem',
+                  fontWeight: '600',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  border: `1px solid ${selectedSubcategory === null ? '#8b5cf6' : 'var(--color-border)'}`,
+                  background: selectedSubcategory === null ? 'rgba(139,92,246,0.15)' : 'transparent',
+                  color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-muted)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}
+              >
+                All
+              </button>
+              {availableSubcategories.map(sub => (
+                <button
+                  key={sub}
+                  onClick={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    fontSize: '0.625rem',
+                    fontWeight: '600',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    border: `1px solid ${selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-border)'}`,
+                    background: selectedSubcategory === sub ? 'rgba(139,92,246,0.15)' : 'transparent',
+                    color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-muted)',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          )}
+          </>
         )}
+
+        <div className="market-layout">
+          {/* Sidebar — desktop only, visible when a category with subcategories is selected */}
+          {(activeTab === 'open' || activeTab === 'resolved') && selectedCategory !== null && availableSubcategories.length > 0 && (
+            <aside className="market-sidebar">
+              <div style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border-subtle)',
+                borderRadius: '12px',
+                padding: '1rem',
+              }}>
+                <h4 style={{
+                  fontFamily: 'Bebas Neue, sans-serif',
+                  fontSize: '0.875rem',
+                  color: 'var(--color-fg-dim)',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.75rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '1px solid var(--color-border-subtle)',
+                }}>
+                  Subcategories
+                </h4>
+                <button
+                  onClick={() => setSelectedSubcategory(null)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '0.5rem 0.625rem',
+                    fontSize: '0.75rem',
+                    fontWeight: selectedSubcategory === null ? '700' : '500',
+                    color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-muted)',
+                    background: selectedSubcategory === null ? 'rgba(139,92,246,0.1)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    marginBottom: '2px',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedSubcategory !== null) e.currentTarget.style.background = 'var(--color-surface-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedSubcategory !== null) e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <span>All</span>
+                  <span style={{
+                    fontSize: '0.6875rem',
+                    color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-dim)',
+                    fontWeight: '600',
+                    minWidth: '1.5rem',
+                    textAlign: 'right',
+                  }}>
+                    {Object.values(subcategoryCounts).reduce((a, b) => a + b, 0)}
+                  </span>
+                </button>
+                {availableSubcategories.map(sub => (
+                  <button
+                    key={sub}
+                    onClick={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '0.5rem 0.625rem',
+                      fontSize: '0.75rem',
+                      fontWeight: selectedSubcategory === sub ? '700' : '500',
+                      color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-muted)',
+                      background: selectedSubcategory === sub ? 'rgba(139,92,246,0.1)' : 'transparent',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      marginBottom: '2px',
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedSubcategory !== sub) e.currentTarget.style.background = 'var(--color-surface-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedSubcategory !== sub) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>{sub}</span>
+                    <span style={{
+                      fontSize: '0.6875rem',
+                      color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-dim)',
+                      fontWeight: '600',
+                      minWidth: '1.5rem',
+                      textAlign: 'right',
+                    }}>
+                      {subcategoryCounts[sub] || 0}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </aside>
+          )}
+
+          <div className="market-main">
 
         {activeTab === 'claims' ? (
           <div>
@@ -693,7 +907,7 @@ export default function Dashboard() {
                 gap: '1.5rem',
               }}>
                 {eligibleClaims.map((claim) => {
-                  const { title, imageUrl } = parseMarketTitle(claim.question);
+                  const { title, imageUrl, subcategory } = parseMarketTitle(claim.question);
                   const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
                   return (
                   <article
@@ -733,6 +947,22 @@ export default function Dashboard() {
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                       {title}
                     </h3>
+                    {subcategory && (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.2rem 0.5rem',
+                        background: 'rgba(139,92,246,0.15)',
+                        color: '#8b5cf6',
+                        fontSize: '0.625rem',
+                        fontWeight: '600',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        borderRadius: '4px',
+                        marginBottom: '0.5rem',
+                      }}>
+                        {subcategory}
+                      </span>
+                    )}
                     <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-success-bg)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-success)' }}>Your Bet ({claim.outcome ? 'YES' : 'NO'}):</span>
@@ -750,7 +980,7 @@ export default function Dashboard() {
                   </article>
                   );})}
                 {claimedRewards.map((claim) => {
-                  const { title, imageUrl } = parseMarketTitle(claim.question);
+                  const { title, imageUrl, subcategory } = parseMarketTitle(claim.question);
                   const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
                   return (
                   <article
@@ -791,6 +1021,22 @@ export default function Dashboard() {
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                       {title}
                     </h3>
+                    {subcategory && (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.2rem 0.5rem',
+                        background: 'rgba(139,92,246,0.15)',
+                        color: '#8b5cf6',
+                        fontSize: '0.625rem',
+                        fontWeight: '600',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        borderRadius: '4px',
+                        marginBottom: '0.5rem',
+                      }}>
+                        {subcategory}
+                      </span>
+                    )}
                     <div style={{ padding: '0.75rem', background: 'var(--color-success-bg)', borderRadius: '4px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-muted)' }}>Payout Claimed:</span>
@@ -816,7 +1062,9 @@ export default function Dashboard() {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                 gap: '1.5rem',
               }}>
-                {pendingRefunds.map((refund) => (
+                {pendingRefunds.map((refund) => {
+                  const { title: refundTitle, subcategory: refundSubcategory } = parseMarketTitle(refund.question);
+                  return (
                   <article
                     key={refund.marketId}
                     style={{ 
@@ -842,8 +1090,24 @@ export default function Dashboard() {
                       </span>
                     </div>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
-                      {refund.question}
+                      {refundTitle}
                     </h3>
+                    {refundSubcategory && (
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.2rem 0.5rem',
+                        background: 'rgba(139,92,246,0.15)',
+                        color: '#8b5cf6',
+                        fontSize: '0.625rem',
+                        fontWeight: '600',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        borderRadius: '4px',
+                        marginBottom: '0.5rem',
+                      }}>
+                        {refundSubcategory}
+                      </span>
+                    )}
                     {refund.reason && (
                       <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)', marginBottom: '0.75rem' }}>
                         "{refund.reason}"
@@ -867,7 +1131,8 @@ export default function Dashboard() {
                       <RefundButton marketId={refund.marketId} userAddress={address} />
                     )}
                   </article>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -886,7 +1151,7 @@ export default function Dashboard() {
             gap: '1.5rem',
           }}>
             {filteredMarkets.map((market) => {
-              const { title, imageUrl } = parseMarketTitle(market.question);
+              const { title, imageUrl, subcategory } = parseMarketTitle(market.question);
               const yesPercent = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
               const noPercent = 100 - yesPercent;
               const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
@@ -961,6 +1226,24 @@ export default function Dashboard() {
                   <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
                     {title}
                   </h3>
+
+                  {/* Subcategory Badge */}
+                  {subcategory && (
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '0.2rem 0.5rem',
+                      background: 'rgba(139,92,246,0.15)',
+                      color: '#8b5cf6',
+                      fontSize: '0.625rem',
+                      fontWeight: '600',
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      borderRadius: '4px',
+                      marginBottom: '0.75rem',
+                    }}>
+                      {subcategory}
+                    </span>
+                  )}
 
                   {/* Probability Chart */}
                   <div style={{ marginBottom: '1rem', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-border-subtle)' }}>
@@ -1116,6 +1399,8 @@ export default function Dashboard() {
             })}
           </div>
         )}
+          </div>{/* end .market-main */}
+        </div>{/* end .market-layout */}
       </section>
 
       {/* Create Market Modal */}
@@ -1180,6 +1465,27 @@ export default function Dashboard() {
                   value={newMarket.imageUrl}
                   onChange={(e) => setNewMarket({ ...newMarket, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    fontSize: '0.875rem',
+                    background: 'var(--color-bg)',
+                    color: 'var(--color-fg)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '8px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-fg-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
+                  Subcategory (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={newMarket.subcategory}
+                  onChange={(e) => setNewMarket({ ...newMarket, subcategory: e.target.value })}
+                  placeholder="e.g. Bitcoin, NBA, Elections"
                   style={{
                     width: '100%',
                     padding: '0.75rem',

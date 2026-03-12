@@ -492,3 +492,54 @@ body::before {
     transform: translateX(100%);
   }
 }
+
+/* ── Subcategory Sidebar (desktop only) ── */
+.market-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.market-sidebar {
+  display: none;
+}
+
+.market-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Subcategory chips: visible on mobile, hidden on desktop when sidebar is active */
+.subcategory-chips {
+  display: flex;
+}
+
+.subcategory-chips--desktop-hidden {
+  display: flex;
+}
+
+@media (min-width: 769px) {
+  .market-sidebar {
+    display: block;
+    width: 220px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .market-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .market-sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .subcategory-chips--desktop-hidden {
+    display: none !important;
+  }
+}

@@ -45,13 +45,19 @@ const MOBILE_BREAKPOINT = 860;
 
 /* ────────────────────────── helpers ────────────────────────── */
 
+function parseTitle(raw) {
+  const parts = raw.split(':::');
+  if (parts.length === 2) return { title: parts[0].trim(), subcategory: parts[1].trim() };
+  return { title: raw, subcategory: null };
+}
+
 function parseMarketTitle(rawTitle) {
-  if (!rawTitle || typeof rawTitle !== 'string') return { title: '', imageUrl: null };
-  const parts = rawTitle.split(IMAGE_SEPARATOR);
-  if (parts.length >= 2 && parts[1].trim()) {
-    return { title: parts[0].trim(), imageUrl: parts[1].trim() };
-  }
-  return { title: rawTitle, imageUrl: null };
+  if (!rawTitle || typeof rawTitle !== 'string') return { title: '', imageUrl: null, subcategory: null };
+  const imgParts = rawTitle.split(IMAGE_SEPARATOR);
+  const imageUrl = imgParts.length >= 2 && imgParts[1].trim() ? imgParts[1].trim() : null;
+  const titleRaw = imgParts[0].trim();
+  const { title, subcategory } = parseTitle(titleRaw);
+  return { title, imageUrl, subcategory };
 }
 
 function formatVolume(vol) {
@@ -237,7 +243,7 @@ export default function MarketDetail() {
 
   /* ── derived data ── */
 
-  const { title, imageUrl } = useMemo(
+  const { title, imageUrl, subcategory } = useMemo(
     () => parseMarketTitle(market?.question),
     [market?.question],
   );
@@ -857,6 +863,24 @@ export default function MarketDetail() {
           }}>
             {title}
           </h1>
+
+          {/* Subcategory Badge */}
+          {subcategory && (
+            <span style={{
+              display: 'inline-block',
+              padding: '0.25rem 0.6rem',
+              background: 'rgba(139,92,246,0.15)',
+              color: '#8b5cf6',
+              fontSize: '0.6875rem',
+              fontWeight: '600',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              borderRadius: '4px',
+              marginTop: '0.5rem',
+            }}>
+              {subcategory}
+            </span>
+          )}
         </div>
       </section>
 
