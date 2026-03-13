@@ -675,34 +675,17 @@ export default function Dashboard() {
         {/* Category Filters — visible on Open / Resolved tabs */}
         {(activeTab === 'open' || activeTab === 'resolved') && (
           <>
-          <div style={{
-            display: 'flex', gap: '0.375rem', marginBottom: '1.5rem',
-            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-            paddingBottom: '2px', flexWrap: 'wrap',
-          }}>
+          <div className="cat-chips">
             <button
+              className={`cat-chip${selectedCategory === null ? ' cat-chip--active' : ''}`}
               onClick={() => { setSelectedCategory(null); setSelectedSubcategory(null); }}
-              style={{
-                padding: '0.3rem 0.65rem',
-                fontSize: '0.6875rem',
-                fontWeight: '600',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                border: `1px solid ${selectedCategory === null ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                background: selectedCategory === null ? 'var(--color-accent-muted)' : 'transparent',
-                color: selectedCategory === null ? 'var(--color-accent)' : 'var(--color-fg-muted)',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
             >
               All
             </button>
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
+                className={`cat-chip${selectedCategory === cat.id ? ' cat-chip--active' : ''}`}
                 onClick={() => {
                   if (selectedCategory === cat.id) {
                     setSelectedCategory(null);
@@ -711,20 +694,7 @@ export default function Dashboard() {
                   }
                   setSelectedSubcategory(null);
                 }}
-                style={{
-                  padding: '0.3rem 0.65rem',
-                  fontSize: '0.6875rem',
-                  fontWeight: '600',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  border: `1px solid ${selectedCategory === cat.id ? cat.color : 'var(--color-border)'}`,
-                  background: selectedCategory === cat.id ? cat.bg : 'transparent',
-                  color: selectedCategory === cat.id ? cat.color : 'var(--color-fg-muted)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
+                style={{ '--chip-color': cat.color }}
               >
                 {cat.label}
               </button>
@@ -789,99 +759,25 @@ export default function Dashboard() {
           {/* Sidebar — desktop only, visible when a category with subcategories is selected */}
           {(activeTab === 'open' || activeTab === 'resolved') && selectedCategory !== null && availableSubcategories.length > 0 && (
             <aside className="market-sidebar">
-              <div style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border-subtle)',
-                borderRadius: '12px',
-                padding: '1rem',
-              }}>
-                <h4 style={{
-                  fontFamily: 'Bebas Neue, sans-serif',
-                  fontSize: '0.875rem',
-                  color: 'var(--color-fg-dim)',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  marginBottom: '0.75rem',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '1px solid var(--color-border-subtle)',
-                }}>
-                  Subcategories
-                </h4>
+              <div className="sub-sidebar">
+                <h4 className="sub-sidebar__title">Subcategories</h4>
                 <button
+                  className={`sub-row${selectedSubcategory === null ? ' sub-row--active' : ''}`}
                   onClick={() => setSelectedSubcategory(null)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    padding: '0.5rem 0.625rem',
-                    fontSize: '0.75rem',
-                    fontWeight: selectedSubcategory === null ? '700' : '500',
-                    color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-muted)',
-                    background: selectedSubcategory === null ? 'rgba(139,92,246,0.1)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    marginBottom: '2px',
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (selectedSubcategory !== null) e.currentTarget.style.background = 'var(--color-surface-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (selectedSubcategory !== null) e.currentTarget.style.background = 'transparent';
-                  }}
                 >
                   <span>All</span>
-                  <span style={{
-                    fontSize: '0.6875rem',
-                    color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-dim)',
-                    fontWeight: '600',
-                    minWidth: '1.5rem',
-                    textAlign: 'right',
-                  }}>
+                  <span className="sub-row__count">
                     {Object.values(subcategoryCounts).reduce((a, b) => a + b, 0)}
                   </span>
                 </button>
                 {availableSubcategories.map(sub => (
                   <button
                     key={sub}
+                    className={`sub-row${selectedSubcategory === sub ? ' sub-row--active' : ''}`}
                     onClick={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: '0.5rem 0.625rem',
-                      fontSize: '0.75rem',
-                      fontWeight: selectedSubcategory === sub ? '700' : '500',
-                      color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-muted)',
-                      background: selectedSubcategory === sub ? 'rgba(139,92,246,0.1)' : 'transparent',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      marginBottom: '2px',
-                      textAlign: 'left',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedSubcategory !== sub) e.currentTarget.style.background = 'var(--color-surface-hover)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedSubcategory !== sub) e.currentTarget.style.background = 'transparent';
-                    }}
                   >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginRight: '0.5rem' }}>{sub}</span>
-                    <span style={{
-                      fontSize: '0.6875rem',
-                      color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-dim)',
-                      fontWeight: '600',
-                      minWidth: '1.5rem',
-                      textAlign: 'right',
-                    }}>
-                      {subcategoryCounts[sub] || 0}
-                    </span>
+                    <span className="sub-row__label">{sub}</span>
+                    <span className="sub-row__count">{subcategoryCounts[sub] || 0}</span>
                   </button>
                 ))}
               </div>

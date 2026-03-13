@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import {
@@ -171,7 +171,14 @@ export default function MarketDetail() {
   /* ── trade state ── */
 
   const [amount, setAmount] = useState('');
-  const [selectedSide, setSelectedSide] = useState(null);
+  const [selectedSide, setSelectedSide] = useState(true); // default to Yes
+  const [showUsdMode, setShowUsdMode] = useState(true); // toggle USD/token display
+
+  /* ── wallet balance ── */
+  const { data: walletBalance } = useBalance({
+    address,
+    query: { enabled: !!address && isConnected },
+  });
   const {
     writeContract,
     isPending: isTradePending,
@@ -184,9 +191,9 @@ export default function MarketDetail() {
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: 'estimatePayout',
-    args: [BigInt(marketId), selectedSide ?? true, amount ? parseEther(amount) : 0n],
+    args: [BigInt(marketId), selectedSide, amount ? parseEther(amount) : 0n],
     query: {
-      enabled: !isNaN(marketId) && selectedSide != null && !!amount && parseFloat(amount) > 0,
+      enabled: !isNaN(marketId) && !!amount && parseFloat(amount) > 0,
     },
   });
 
@@ -318,6 +325,20 @@ export default function MarketDetail() {
     }
   };
 
+  const handleQuickFill = (val) => {
+    const current = parseFloat(amount) || 0;
+    setAmount((current + val).toString());
+  };
+
+  const handleMaxFill = () => {
+    if (walletBalance) {
+      const bal = parseFloat(formatEther(walletBalance.value));
+      // Leave a small buffer for gas
+      const maxAmount = Math.max(0, bal - 0.001);
+      setAmount(maxAmount > 0 ? maxAmount.toFixed(4) : '0');
+    }
+  };
+
   /* ── unified refresh after confirmed tx ── */
 
   const refreshAllData = useCallback(async () => {
@@ -421,46 +442,44 @@ export default function MarketDetail() {
      depending on desktop vs mobile)
      ════════════════════════════════════════════════════════════ */
 
-  /* ── Outcome Probabilities ── */
+  /* ── Outcome Probabilities (single split bar) ── */
   const outcomeProbabilities = (
     <div style={{ marginBottom: '1.25rem' }}>
-      {/* Yes bar */}
-      <div style={{ marginBottom: '0.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-success)' }}>Yes</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-success)' }}>{yesPercent}%</span>
-        </div>
-        <div style={{ height: '8px', background: 'var(--color-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
-        </div>
-      </div>
-      {/* No bar */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)' }}>No</span>
-          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)' }}>{noPercent}%</span>
-        </div>
-        <div style={{ height: '8px', background: 'var(--color-bg)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${noPercent}%`, background: 'var(--color-danger)', borderRadius: '4px', transition: 'width 0.5s ease' }} />
-        </div>
-      </div>
-      {/* Large outcome cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
+      {/* Single split probability bar */}
+      <div style={{
+        height: '10px', borderRadius: '5px', overflow: 'hidden',
+        display: 'flex', marginBottom: '0.625rem',
+      }}>
         <div style={{
-          background: 'var(--color-success-bg)',
-          border: '1px solid var(--color-success)',
-          borderRadius: '10px', padding: '1rem', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '0.625rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>Yes</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--color-success)', lineHeight: 1 }}>{yesPercent}%</div>
-        </div>
+          width: `${yesPercent}%`, background: 'var(--color-success)',
+          transition: 'width 0.5s ease',
+          borderRadius: yesPercent >= 100 ? '5px' : '5px 0 0 5px',
+        }} />
         <div style={{
-          background: 'var(--color-danger-bg)',
-          border: '1px solid var(--color-danger)',
-          borderRadius: '10px', padding: '1rem', textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '0.625rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '2px' }}>No</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--color-danger)', lineHeight: 1 }}>{noPercent}%</div>
+          width: `${noPercent}%`, background: 'var(--color-danger)',
+          transition: 'width 0.5s ease',
+          borderRadius: noPercent >= 100 ? '5px' : '0 5px 5px 0',
+        }} />
+      </div>
+      {/* Dot labels below the bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{
+            width: '8px', height: '8px', borderRadius: '50%',
+            background: 'var(--color-success)', display: 'inline-block', flexShrink: 0,
+          }} />
+          <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+            Yes {yesPercent}%
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{
+            width: '8px', height: '8px', borderRadius: '50%',
+            background: 'var(--color-danger)', display: 'inline-block', flexShrink: 0,
+          }} />
+          <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+            No {noPercent}%
+          </span>
         </div>
       </div>
     </div>
@@ -469,103 +488,335 @@ export default function MarketDetail() {
   /* ── Trade Form (the interactive part) ── */
   const tradeForm = market.status === 0 ? (
     !isConnected ? (
-      <div style={{ textAlign: 'center', padding: '0.75rem 0' }}>
-        <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.375rem' }}>
-          Connect your wallet to trade
+      <div style={{ textAlign: 'center', padding: '1.25rem 0' }}>
+        <div style={{
+          width: '48px', height: '48px', borderRadius: '50%',
+          background: 'var(--color-accent-muted)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem',
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
         </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', marginBottom: '1.25rem' }}>
-          You need a connected wallet to place positions.
+        <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.375rem' }}>
+          Connect wallet to trade
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+          You need a connected wallet to place positions on this market.
         </div>
         <ConnectButton />
       </div>
     ) : (
       <>
-        {/* Amount input */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{
-            display: 'block', fontSize: '0.6875rem',
-            color: 'var(--color-fg-dim)', textTransform: 'uppercase',
-            letterSpacing: '0.1em', marginBottom: '0.375rem',
-            fontFamily: 'var(--font-body)',
-          }}>
-            Amount (USDC)
-          </label>
-          <input
-            type="number"
-            min="0.001"
-            step="0.01"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+        {/* ── Outcome Selector (segmented tab control) ── */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0',
+          background: 'var(--color-bg)', borderRadius: '10px', padding: '3px',
+          marginBottom: '1rem',
+        }}>
+          <button
+            onClick={() => setSelectedSide(true)}
+            className="trade-outcome-tab"
             style={{
-              width: '100%', padding: '0.875rem',
-              fontSize: '1.125rem', fontWeight: '600',
+              padding: '0.75rem 0.5rem', fontSize: '0.875rem', fontWeight: '700',
               fontFamily: 'var(--font-body)',
-              background: 'var(--color-bg)',
-              color: 'var(--color-fg)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '8px',
-              textAlign: 'center',
-              boxSizing: 'border-box',
+              background: selectedSide === true ? 'var(--color-success)' : 'transparent',
+              color: selectedSide === true ? '#fff' : 'var(--color-fg-dim)',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+              transition: 'all 0.15s ease',
+              position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
             }}
-          />
+          >
+            YES
+            <span style={{
+              fontSize: '0.75rem', fontWeight: '600',
+              opacity: selectedSide === true ? 0.85 : 0.6,
+            }}>
+              {yesPercent}¢
+            </span>
+            {selectedSide === true && (
+              <span style={{
+                position: 'absolute', bottom: '0', left: '50%',
+                transform: 'translateX(-50%)', width: '28px', height: '2.5px',
+                background: '#fff', borderRadius: '2px', opacity: 0.6,
+              }} />
+            )}
+          </button>
+          <button
+            onClick={() => setSelectedSide(false)}
+            className="trade-outcome-tab"
+            style={{
+              padding: '0.75rem 0.5rem', fontSize: '0.875rem', fontWeight: '700',
+              fontFamily: 'var(--font-body)',
+              background: selectedSide === false ? 'var(--color-danger)' : 'transparent',
+              color: selectedSide === false ? '#fff' : 'var(--color-fg-dim)',
+              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+              transition: 'all 0.15s ease',
+              position: 'relative',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            }}
+          >
+            NO
+            <span style={{
+              fontSize: '0.75rem', fontWeight: '600',
+              opacity: selectedSide === false ? 0.85 : 0.6,
+            }}>
+              {noPercent}¢
+            </span>
+            {selectedSide === false && (
+              <span style={{
+                position: 'absolute', bottom: '0', left: '50%',
+                transform: 'translateX(-50%)', width: '28px', height: '2.5px',
+                background: '#fff', borderRadius: '2px', opacity: 0.6,
+              }} />
+            )}
+          </button>
         </div>
 
-        {/* Estimated payout */}
-        {amount && selectedSide != null && (
+        {/* ── Amount Section ── */}
+        <div style={{ marginBottom: '1rem' }}>
+          {/* Amount header row */}
           <div style={{
-            background: 'var(--color-bg)',
-            border: '1px solid var(--color-border-subtle)',
-            borderRadius: '8px', padding: '0.75rem',
-            marginBottom: '1rem',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginBottom: '0.5rem',
           }}>
-            <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Est. Payout
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <label style={{
+                fontSize: '0.625rem',
+                color: 'var(--color-fg-dim)', textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                fontFamily: 'var(--font-body)', fontWeight: '600',
+                margin: 0,
+              }}>
+                Amount
+              </label>
+              <button
+                onClick={() => setShowUsdMode(!showUsdMode)}
+                title="Toggle USD / Token"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--color-accent)', fontSize: '0.875rem',
+                  padding: '2px', display: 'flex', alignItems: 'center',
+                  transition: 'color 0.15s ease',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4"/>
+                  <path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                </svg>
+              </button>
+            </div>
+            {/* Wallet balance */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.375rem',
+              fontSize: '0.6875rem', color: 'var(--color-fg-dim)',
+              fontFamily: 'var(--font-body)',
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="M22 10H18a2 2 0 0 0 0 4h4"/>
+              </svg>
+              <span>
+                ${walletBalance ? parseFloat(formatEther(walletBalance.value)).toFixed(2) : '0.00'}
+              </span>
+            </div>
+          </div>
+
+          {/* Amount input container */}
+          <div className="trade-amount-input-wrap" style={{
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '10px',
+            padding: '0.75rem',
+            transition: 'border-color 0.15s ease',
+            marginBottom: '0.5rem',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center',
+            }}>
+              <span style={{
+                fontSize: '1.5rem', fontWeight: '700', color: 'var(--color-fg-dim)',
+                marginRight: '2px', fontFamily: 'var(--font-body)',
+                userSelect: 'none',
+              }}>$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="trade-amount-input"
+                style={{
+                  flex: 1,
+                  fontSize: '1.5rem', fontWeight: '700',
+                  fontFamily: 'var(--font-body)',
+                  background: 'transparent',
+                  color: 'var(--color-fg)',
+                  border: 'none', outline: 'none',
+                  padding: 0, margin: 0,
+                  minWidth: 0,
+                }}
+              />
+              <span style={{
+                fontSize: '0.75rem', fontWeight: '600',
+                color: 'var(--color-fg-dim)',
+                background: 'var(--color-surface-elevated)',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '6px',
+                flexShrink: 0,
+                fontFamily: 'var(--font-body)',
+                letterSpacing: '0.04em',
+              }}>
+                {showUsdMode ? 'USD' : 'ETH'}
+              </span>
+            </div>
+          </div>
+
+          {/* Quick-fill buttons */}
+          <div className="trade-quickfill" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.375rem',
+          }}>
+            {[1, 10, 100].map((val) => (
+              <button
+                key={val}
+                onClick={() => handleQuickFill(val)}
+                className="trade-quickfill-btn"
+                style={{
+                  padding: '0.5rem 0.25rem',
+                  fontSize: '0.6875rem', fontWeight: '600',
+                  fontFamily: 'var(--font-body)',
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-fg-muted)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px', cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  textAlign: 'center',
+                }}
+              >
+                +${val}
+              </button>
+            ))}
+            <button
+              onClick={handleMaxFill}
+              className="trade-quickfill-btn trade-quickfill-max"
+              style={{
+                padding: '0.5rem 0.25rem',
+                fontSize: '0.6875rem', fontWeight: '700',
+                fontFamily: 'var(--font-body)',
+                background: 'var(--color-accent-muted)',
+                color: 'var(--color-accent)',
+                border: '1px solid transparent',
+                borderRadius: '8px', cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                textAlign: 'center',
+                letterSpacing: '0.06em',
+              }}
+            >
+              MAX
+            </button>
+          </div>
+        </div>
+
+        {/* ── Order Summary ── */}
+        <div className="trade-returns" style={{
+          background: 'var(--color-bg)',
+          borderRadius: '10px', padding: '0.875rem',
+          marginBottom: '1rem',
+        }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginBottom: '0.5rem',
+          }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
+              Avg Price
             </span>
-            <span style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--color-success)' }}>
-              ~{payoutDisplay} USDC
+            <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+              {selectedSide ? yesPercent : noPercent}¢
             </span>
           </div>
-        )}
-
-        {/* Yes / No buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <button
-            onClick={() => handleTrade(true)}
-            disabled={isTradePending}
-            style={{
-              padding: '0.875rem', fontSize: '0.875rem', fontWeight: '700',
-              fontFamily: 'var(--font-body)',
-              background: 'var(--color-success)',
-              color: 'var(--color-accent-fg)',
-              border: 'none',
-              borderRadius: '10px', cursor: 'pointer',
-              textTransform: 'uppercase',
-              opacity: isTradePending && selectedSide !== true ? 0.5 : 1,
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {isTradePending && selectedSide === true ? 'Confirming...' : `Buy Yes ${yesPercent}\u00A2`}
-          </button>
-          <button
-            onClick={() => handleTrade(false)}
-            disabled={isTradePending}
-            style={{
-              padding: '0.875rem', fontSize: '0.875rem', fontWeight: '700',
-              fontFamily: 'var(--font-body)',
-              background: 'var(--color-danger)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '10px', cursor: 'pointer',
-              textTransform: 'uppercase',
-              opacity: isTradePending && selectedSide !== false ? 0.5 : 1,
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {isTradePending && selectedSide === false ? 'Confirming...' : `Buy No ${noPercent}\u00A2`}
-          </button>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            marginBottom: '0.5rem',
+          }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
+              Shares
+            </span>
+            <span style={{ fontSize: '0.8125rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+              {amount && parseFloat(amount) > 0
+                ? (parseFloat(amount) / ((selectedSide ? yesPercent : noPercent) / 100)).toFixed(2)
+                : '0.00'}
+            </span>
+          </div>
+          <div style={{
+            height: '1px', background: 'var(--color-border-subtle)', margin: '0.5rem 0',
+          }} />
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
+              Potential Return
+            </span>
+            <span style={{ fontSize: '0.875rem', fontWeight: '700', color: 'var(--color-success)' }}>
+              {amount && parseFloat(amount) > 0 ? (
+                <>
+                  ${payoutDisplay}
+                  {estimatedPayout && (
+                    <span style={{ fontSize: '0.6875rem', marginLeft: '4px' }}>
+                      ({((parseFloat(payoutDisplay) / parseFloat(amount) - 1) * 100).toFixed(0)}%)
+                    </span>
+                  )}
+                </>
+              ) : '--'}
+            </span>
+          </div>
         </div>
+
+        {/* ── Trade Action Button ── */}
+        <button
+          onClick={() => handleTrade(selectedSide)}
+          disabled={isTradePending || !amount || parseFloat(amount) <= 0}
+          className="trade-action-btn"
+          style={{
+            width: '100%',
+            padding: '1rem', fontSize: '0.875rem', fontWeight: '700',
+            fontFamily: 'var(--font-body)',
+            background: isTradePending
+              ? 'var(--color-fg-dim)'
+              : (selectedSide ? 'var(--color-success)' : 'var(--color-danger)'),
+            color: isTradePending ? 'var(--color-bg)' : '#fff',
+            border: 'none',
+            borderRadius: '12px', cursor: isTradePending ? 'not-allowed' : 'pointer',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            transition: 'all 0.2s ease',
+            marginBottom: '0.75rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+          }}
+        >
+          {isTradePending ? (
+            <>
+              <span style={{
+                width: '16px', height: '16px',
+                border: '2px solid currentColor',
+                borderTopColor: 'transparent',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                display: 'inline-block',
+              }} />
+              Confirming...
+            </>
+          ) : (
+            <>
+              BUY {selectedSide ? 'YES' : 'NO'}
+              {amount && parseFloat(amount) > 0 ? ` \u2014 $${parseFloat(amount).toFixed(0)}` : ''}
+            </>
+          )}
+        </button>
 
         {/* Error */}
         {tradeError && (
@@ -587,7 +838,16 @@ export default function MarketDetail() {
           <div style={{
             background: 'var(--color-accent-muted)', border: '1px solid var(--color-accent)',
             borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem',
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
           }}>
+            <span style={{
+              width: '14px', height: '14px',
+              border: '2px solid var(--color-accent)',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              display: 'inline-block', flexShrink: 0,
+            }} />
             <div style={{ fontSize: '0.75rem', color: 'var(--color-accent)', fontWeight: '600' }}>
               Transaction submitted, waiting for confirmation...
             </div>
@@ -597,7 +857,11 @@ export default function MarketDetail() {
           <div style={{
             background: 'var(--color-success-bg)', border: '1px solid var(--color-success)',
             borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem',
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
           }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>
               Transaction confirmed on-chain!
             </div>
@@ -606,10 +870,10 @@ export default function MarketDetail() {
 
         {/* Disclaimer */}
         <p style={{
-          fontSize: '0.625rem', color: 'var(--color-fg-dim)',
+          fontSize: '0.5625rem', color: 'var(--color-fg-dim)',
           textAlign: 'center', lineHeight: 1.5, margin: 0,
         }}>
-          By placing a position you agree to the smart contract terms.
+          By trading you agree to the smart-contract terms.
         </p>
       </>
     )
@@ -654,7 +918,7 @@ export default function MarketDetail() {
           ? {
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border-subtle)',
-              borderRadius: '12px',
+              borderRadius: '16px',
               padding: '1.25rem',
               marginBottom: '2rem',
             }
@@ -674,19 +938,44 @@ export default function MarketDetail() {
           : {
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border-subtle)',
-              borderRadius: '12px',
+              borderRadius: '16px',
               padding: '1.25rem',
             }
         ),
       }}>
-        {/* Section label */}
-        <h2 style={{
-          fontSize: '0.75rem', fontWeight: '600',
-          textTransform: 'uppercase', letterSpacing: '0.1em',
-          color: 'var(--color-fg-dim)', margin: '0 0 1rem',
+        {/* Trade Panel Header */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: '1rem',
         }}>
-          Outcome Probabilities
-        </h2>
+          <h2 style={{
+            fontSize: '1rem', fontWeight: '700',
+            color: 'var(--color-fg)', margin: 0,
+            fontFamily: 'var(--font-body)',
+          }}>
+            Trade
+          </h2>
+          {market.status === 0 && (
+            <span className="trade-live-badge" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              fontSize: '0.625rem', fontWeight: '700',
+              color: 'var(--color-success)',
+              background: 'var(--color-success-bg)',
+              padding: '0.25rem 0.625rem',
+              borderRadius: '999px',
+              fontFamily: 'var(--font-body)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}>
+              <span className="trade-live-dot" style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: 'var(--color-success)',
+                display: 'inline-block',
+              }} />
+              LIVE
+            </span>
+          )}
+        </div>
 
         {outcomeProbabilities}
 
@@ -1216,16 +1505,7 @@ export default function MarketDetail() {
         )}
       </div>
 
-      {/* Scrollbar override for trade panel on desktop */}
-      <style>{`
-        .md-trade-panel::-webkit-scrollbar {
-          width: 4px;
-        }
-        .md-trade-panel::-webkit-scrollbar-thumb {
-          background: var(--color-border);
-          border-radius: 2px;
-        }
-      `}</style>
+      {/* Scrollbar styles handled by CSS */}
 
       {/* ── Resolve Confirmation Modal ── */}
       {showResolveModal && (

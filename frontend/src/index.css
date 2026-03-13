@@ -493,7 +493,133 @@ body::before {
   }
 }
 
+/* ── Category Filter Chips ── */
+.cat-chips {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.cat-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-chip {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  color: var(--color-fg-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cat-chip:hover:not(.cat-chip--active) {
+  background: var(--color-surface-hover);
+  color: var(--color-fg-muted);
+}
+
+.cat-chip--active {
+  background: var(--chip-color, var(--color-accent));
+  color: #fff;
+  border-color: var(--chip-color, var(--color-accent));
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--chip-color, var(--color-accent)) 30%, transparent);
+}
+
 /* ── Subcategory Sidebar (desktop only) ── */
+
+.sub-sidebar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.125rem;
+  box-shadow: 0 1px 3px var(--color-shadow), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.sub-sidebar__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--color-fg);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.875rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sub-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.5625rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--color-fg-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: 2px;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.sub-row:hover:not(.sub-row--active) {
+  background: var(--color-surface-hover);
+  color: var(--color-fg);
+}
+
+.sub-row--active {
+  font-weight: 700;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.12);
+  border-left-color: #8b5cf6;
+}
+
+.sub-row__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.sub-row__count {
+  font-size: 0.625rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  min-width: 1.375rem;
+  padding: 0.125rem 0.4rem;
+  border-radius: 999px;
+  text-align: center;
+  line-height: 1.3;
+  flex-shrink: 0;
+  background: var(--color-bg-soft);
+  color: var(--color-fg-dim);
+}
+
+.sub-row--active .sub-row__count {
+  background: rgba(139, 92, 246, 0.2);
+  color: #8b5cf6;
+}
+
 .market-layout {
   display: flex;
   gap: 1.5rem;
@@ -542,4 +668,101 @@ body::before {
   .subcategory-chips--desktop-hidden {
     display: none !important;
   }
+}
+
+/* ══════════════════════════════════════════════
+   Trade Box Styles
+   ══════════════════════════════════════════════ */
+
+/* Amount input - remove number spinners */
+.trade-amount-input::-webkit-outer-spin-button,
+.trade-amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.trade-amount-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Amount input container focus state */
+.trade-amount-input-wrap:focus-within {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 3px var(--color-accent-muted);
+}
+
+/* Quick-fill button hover */
+.trade-quickfill-btn:hover {
+  border-color: var(--color-fg-dim) !important;
+  background: var(--color-surface-hover) !important;
+  color: var(--color-fg) !important;
+}
+
+.trade-quickfill-max:hover {
+  background: var(--color-accent) !important;
+  color: var(--color-accent-fg) !important;
+}
+
+/* Outcome button hover */
+.trade-outcome-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+/* Outcome tab hover (segmented control) */
+.trade-outcome-tab:hover {
+  filter: brightness(1.08);
+}
+
+/* Trade action button hover */
+.trade-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--color-shadow);
+  filter: brightness(1.05);
+}
+
+.trade-action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Trade returns card subtle animation */
+.trade-returns {
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── LIVE badge pulse animation ── */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.trade-live-dot {
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+
+/* ── Trade Panel Responsive ── */
+
+/* Small mobile: stack elements tighter */
+@media (max-width: 380px) {
+  .trade-quickfill {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Trade panel scrollbar on desktop */
+.md-trade-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.md-trade-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.md-trade-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.md-trade-panel::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
 }

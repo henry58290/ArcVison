@@ -1,9 +1,9 @@
 import { getCachedLogs, saveLogs } from './indexedDb';
+import { CONTRACT_ADDRESS } from './contracts';
 
 // BlockScout V1 (Etherscan-compatible) API — includes timestamps per-log,
 // supports fromBlock/toBlock for incremental fetching, and topic filtering.
 const BLOCKSCOUT_API = 'https://testnet.arcscan.app/api';
-const CONTRACT_ADDRESS = '0xCf5385D36e6E88D224678B98AaC8BF0864dc2808';
 
 // keccak256 of PositionPlaced(uint256,address,bool,uint256,uint256,uint256,uint256,uint256)
 const POSITION_PLACED_TOPIC = '0x39030e804a1c2a4713d5e4cfee4b24625c6ccea154822bcce5e09c6798f40863';
