@@ -626,6 +626,19 @@ body::before {
   align-items: flex-start;
 }
 
+.market-layout--full {
+  display: block !important;
+}
+
+.market-layout--full .market-sidebar {
+  display: none !important;
+}
+
+.market-layout--full .market-main {
+  width: 100%;
+  max-width: none;
+}
+
 .market-sidebar {
   display: none;
 }

@@ -273,6 +273,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("open");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
   const [searchParams, setSearchParams] = useSearchParams();
   
   useEffect(() => {
@@ -670,6 +671,51 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
+          <div style={{ display: 'flex', gap: '0.25rem' }}>
+            <button
+              onClick={() => setViewMode('grid')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.375rem',
+                background: viewMode === 'grid' ? '#22c55e' : 'transparent',
+                color: viewMode === 'grid' ? '#fff' : 'var(--color-fg-muted)',
+                border: `1px solid ${viewMode === 'grid' ? '#22c55e' : 'var(--color-border)'}`,
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+              title="Grid view"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="1" width="6" height="6" rx="1" />
+                <rect x="9" y="1" width="6" height="6" rx="1" />
+                <rect x="1" y="9" width="6" height="6" rx="1" />
+                <rect x="9" y="9" width="6" height="6" rx="1" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.375rem',
+                background: viewMode === 'list' ? '#22c55e' : 'transparent',
+                color: viewMode === 'list' ? '#fff' : 'var(--color-fg-muted)',
+                border: `1px solid ${viewMode === 'list' ? '#22c55e' : 'var(--color-border)'}`,
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+              title="List view"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="2" width="14" height="2" rx="1" />
+                <rect x="1" y="7" width="14" height="2" rx="1" />
+                <rect x="1" y="12" width="14" height="2" rx="1" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Category Filters — visible on Open / Resolved tabs */}
@@ -755,7 +801,7 @@ export default function Dashboard() {
           </>
         )}
 
-        <div className="market-layout">
+        <div className={`market-layout${!(activeTab === 'open' || activeTab === 'resolved') || selectedCategory === null || availableSubcategories.length === 0 ? ' market-layout--full' : ''}`}>
           {/* Sidebar — desktop only, visible when a category with subcategories is selected */}
           {(activeTab === 'open' || activeTab === 'resolved') && selectedCategory !== null && availableSubcategories.length > 0 && (
             <aside className="market-sidebar">
@@ -799,8 +845,8 @@ export default function Dashboard() {
             ) : (
               <div style={{ 
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '1.5rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+                gap: '20px',
               }}>
                 {eligibleClaims.map((claim) => {
                   const { title, imageUrl, subcategory } = parseMarketTitle(claim.question);
@@ -809,10 +855,12 @@ export default function Dashboard() {
                   <article
                     key={claim.marketId}
                     style={{ 
+                      width: '100%',
+                      minWidth: '0',
                       background: 'var(--color-surface)',
                       border: '1px solid var(--color-border-subtle)',
                       borderRadius: '12px',
-                      padding: '1.5rem',
+                      padding: '16px',
                     }}
                   >
                     {imageUrl && (
@@ -955,8 +1003,8 @@ export default function Dashboard() {
             ) : (
               <div style={{ 
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '1.5rem',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+                gap: '20px',
               }}>
                 {pendingRefunds.map((refund) => {
                   const { title: refundTitle, subcategory: refundSubcategory } = parseMarketTitle(refund.question);
@@ -964,10 +1012,12 @@ export default function Dashboard() {
                   <article
                     key={refund.marketId}
                     style={{ 
+                      width: '100%',
+                      minWidth: '0',
                       background: 'var(--color-surface)',
                       border: '1px solid var(--color-border-subtle)',
                       borderRadius: '12px',
-                      padding: '1.5rem',
+                      padding: '16px',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
@@ -1040,11 +1090,12 @@ export default function Dashboard() {
           </div>
         )}
         
-        {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length > 0 && (
+        {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length > 0 && viewMode === 'grid' && (
           <div style={{ 
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '1.5rem',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(470px, 470px))',
+            gap: '20px',
+            justifyContent: 'center',
           }}>
             {filteredMarkets.map((market) => {
               const { title, imageUrl, subcategory } = parseMarketTitle(market.question);
@@ -1052,17 +1103,23 @@ export default function Dashboard() {
               const noPercent = 100 - yesPercent;
               const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
               
+              const yesPrice = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
+              const noPrice = 100 - yesPrice;
+              
               return (
                 <article
                   key={`${market.marketId}-${refreshKey}`}
                   style={{ 
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border-subtle)',
+                    width: '470px',
+                    minWidth: '470px',
+                    background: '#ffffff',
+                    border: '1px solid #e4e4e7',
                     borderRadius: '12px',
-                    padding: '1.5rem',
+                    padding: '16px',
                     cursor: 'pointer',
                     transition: 'all 0.25s ease',
                     opacity: market.status === 0 ? 1 : 0.7,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                   }}
                   onClick={() => navigate(`/market/${market.marketId}`)}
                 >
@@ -1141,12 +1198,45 @@ export default function Dashboard() {
                     </span>
                   )}
 
-                  {/* Probability Chart */}
-                  <div style={{ marginBottom: '1rem', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-border-subtle)' }}>
-                    <ProbabilityChart key={chartRefreshKey} marketId={market.marketId} initialYesOdds={market.yesOdds} />
-                  </div>
-
-                  {/* Progress Bar */}
+                  {/* Price Bar - YES/NO Split */}
+                  {market.status === 0 && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                        <div style={{ width: `${yesPrice}%`, background: '#3b82f6', borderRadius: '4px 0 0 4px' }} />
+                        <div style={{ width: `${noPrice}%`, background: '#ef4444', borderRadius: '0 4px 4px 0' }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: '600' }}>{yesPrice}%</span>
+                        <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>{noPrice}%</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <span style={{ 
+                          flex: 1, 
+                          padding: '8px 12px', 
+                          background: '#eff6ff', 
+                          color: '#2563eb', 
+                          borderRadius: '20px', 
+                          fontSize: '0.8125rem', 
+                          fontWeight: '600',
+                          textAlign: 'center',
+                        }}>
+                          YES {yesPrice}¢
+                        </span>
+                        <span style={{ 
+                          flex: 1, 
+                          padding: '8px 12px', 
+                          background: '#fef2f2', 
+                          color: '#dc2626', 
+                          borderRadius: '20px', 
+                          fontSize: '0.8125rem', 
+                          fontWeight: '600',
+                          textAlign: 'center',
+                        }}>
+                          NO {noPrice}¢
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   {market.status === 0 && (
                     <div style={{ marginBottom: '1rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -1206,32 +1296,50 @@ export default function Dashboard() {
 
                   {/* Footer */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)' }}>
-                      {market.status === 2 
-                        ? `Volume: ${formatVolume((cancelledMarketInfo[market.marketId]?.totalYesAtCancel || 0n) + (cancelledMarketInfo[market.marketId]?.totalNoAtCancel || 0n))}`
-                        : `Volume: ${formatVolume(market.totalVolume)}`
-                      }
-                    </span>
-                    {market.status === 0 ? (
-                      <span style={{
-                        padding: '6px 14px',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        background: 'var(--color-accent)',
-                        color: 'var(--color-accent-fg)',
-                        borderRadius: '8px',
-                        textTransform: 'uppercase',
-                      }}>
-                        Trade →
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex' }}>
+                        {[1,2,3].map(i => (
+                          <div key={i} style={{ 
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: '50%', 
+                            background: i === 1 ? '#3b82f6' : i === 2 ? '#22c55e' : '#f97316',
+                            border: '2px solid #fff',
+                            marginLeft: i > 1 ? '-8px' : '0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.625rem',
+                            fontWeight: '600',
+                            color: '#fff',
+                          }}>
+                            {i === 3 ? '+' : ''}
+                          </div>
+                        ))}
+                      </div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
+                        +{market.totalTrades.toString()} traders
                       </span>
-                    ) : (
-                      <span style={{ fontSize: '0.625rem', color: 'var(--color-fg-dim)' }}>
-                        {market.status === 2 
-                          ? `${cancelledMarketInfo[market.marketId]?.totalTradesAtCancel?.toString() || '0'} trades`
-                          : `${market.totalTrades.toString()} trades`
-                        }
-                      </span>
-                    )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-fg-dim)" strokeWidth="2">
+                          <path d="M18 20V10M12 20V4M6 20v-6" />
+                        </svg>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
+                          {formatVolume(market.totalVolume)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-fg-dim)" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 6v6l4 2" />
+                        </svg>
+                        <span style={{ fontSize: '0.75rem', color: market.status === 0 ? 'var(--color-accent)' : 'var(--color-fg-dim)', fontWeight: '500' }}>
+                          {market.status === 0 ? formatTimeLeft(Number(market.endTime)) : 'Ended'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Admin Resolve Button */}
@@ -1290,6 +1398,73 @@ export default function Dashboard() {
                       </button>
                     </div>
                   )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+
+        {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length > 0 && viewMode === 'list' && (
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}>
+            {filteredMarkets.map((market) => {
+              const { title, imageUrl } = parseMarketTitle(market.question);
+              const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
+              const category = CATEGORIES[Number(market.category)] || CATEGORIES[5];
+              
+              return (
+                <article
+                  key={`${market.marketId}-${refreshKey}`}
+                  onClick={() => navigate(`/market/${market.marketId}`)}
+                  style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border-subtle)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: '72px',
+                    opacity: market.status === 0 ? 1 : 0.7,
+                  }}
+                >
+                  <img
+                    src={displayImageUrl}
+                    alt=""
+                    style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = DEFAULT_PLACEHOLDER; }}
+                  />
+                  <div style={{ flex: 1, margin: '0 16px', minWidth: 0 }}>
+                    <div style={{ fontSize: '0.625rem', color: category.color, fontWeight: '600', textTransform: 'uppercase', marginBottom: '2px' }}>
+                      {category.label}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--color-fg)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {title}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)' }}>Volume</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+                        {formatVolume(market.totalVolume)}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)' }}>Traders</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-fg)' }}>
+                        {market.totalTrades.toString()}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: '60px' }}>
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)' }}>Ends</div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: '500', color: market.status === 0 ? 'var(--color-accent)' : 'var(--color-fg-dim)' }}>
+                        {market.status === 0 ? formatTimeLeft(Number(market.endTime)) : 'Ended'}
+                      </div>
+                    </div>
+                  </div>
                 </article>
               );
             })}
