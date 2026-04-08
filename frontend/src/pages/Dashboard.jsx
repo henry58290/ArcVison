@@ -9,6 +9,44 @@ import { clearCache } from "../components/utils/indexedDb";
 const MarketStatus = { 0: "Open", 1: "Resolved", 2: "Cancelled" };
 const IMAGE_SEPARATOR = "||";
 const DEFAULT_PLACEHOLDER = "https://placehold.co/600x400/1a1a2e/666666?text=No+Image";
+const DEFAULT_MARKET_DURATION_DAYS = 30;
+const MAX_MARKET_DURATION_DAYS = 365;
+
+function formatDateTimeLocalValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function getDateTimeInputValue(offsetMs = 0) {
+  const date = new Date(Date.now() + offsetMs);
+  date.setSeconds(0, 0);
+  return formatDateTimeLocalValue(date);
+}
+
+function getDefaultExpirationDateTime() {
+  return getDateTimeInputValue(DEFAULT_MARKET_DURATION_DAYS * 24 * 60 * 60 * 1000);
+}
+
+function buildNewMarketState() {
+  return {
+    question: "",
+    expirationDateTime: getDefaultExpirationDateTime(),
+    imageUrl: "",
+    category: "0",
+    subcategory: "",
+  };
+}
+
+function getExpirationTimestamp(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Math.floor(parsed.getTime() / 1000);
+}
 
 function parseTitle(raw) {
   const parts = raw.split(":::");
@@ -266,7 +304,7 @@ export default function Dashboard() {
   const [showResolveModal, setShowResolveModal] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(null);
   const [cancelReason, setCancelReason] = useState("");
-  const [newMarket, setNewMarket] = useState({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
+  const [newMarket, setNewMarket] = useState(() => buildNewMarketState());
   const [refreshKey, setRefreshKey] = useState(0);
   const [chartRefreshKey, setChartRefreshKey] = useState(0);
   const [marketCache, setMarketCache] = useState({});
@@ -402,7 +440,7 @@ export default function Dashboard() {
       setShowResolveModal(null);
       setShowCancelModal(null);
       setCancelReason("");
-      setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
+      setNewMarket(buildNewMarketState());
     }
   }, [createConfirmed, resolveConfirmed, cancelConfirmed, refundConfirmed, winningsConfirmed]);
 
@@ -436,7 +474,7 @@ export default function Dashboard() {
 
   const handleCloseCreateModal = () => {
     setShowCreateModal(false);
-    setNewMarket({ question: "", duration: "604800", imageUrl: "", category: "0", subcategory: "" });
+    setNewMarket(buildNewMarketState());
   };
 
   const isOwner = owner && address && owner.toLowerCase() === address.toLowerCase();
@@ -449,10 +487,21 @@ export default function Dashboard() {
     }
     return m;
   });
+  const selectedExpirationTimestamp = getExpirationTimestamp(newMarket.expirationDateTime);
+  const minExpirationDateTime = getDateTimeInputValue(60 * 1000);
+  const maxExpirationDateTime = getDateTimeInputValue(MAX_MARKET_DURATION_DAYS * 24 * 60 * 60 * 1000);
+  const nowTimestamp = Math.floor(Date.now() / 1000);
+  const maxExpirationTimestamp = nowTimestamp + (MAX_MARKET_DURATION_DAYS * 24 * 60 * 60);
+  const expirationInPast = selectedExpirationTimestamp !== null && selectedExpirationTimestamp <= nowTimestamp;
+  const expirationTooFar = selectedExpirationTimestamp !== null && selectedExpirationTimestamp > maxExpirationTimestamp;
+  const isCreateMarketFormValid = Boolean(newMarket.question.trim())
+    && selectedExpirationTimestamp !== null
+    && !expirationInPast
+    && !expirationTooFar;
 
   const handleCreateMarket = (e) => {
     e.preventDefault();
-    if (!newMarket.question || !newMarket.duration) return;
+    if (!isCreateMarketFormValid) return;
     const questionWithSub = newMarket.subcategory && newMarket.subcategory.trim()
       ? `${newMarket.question.trim()}:::${newMarket.subcategory.trim()}`
       : newMarket.question.trim();
@@ -463,7 +512,7 @@ export default function Dashboard() {
       address: CONTRACT_ADDRESS,
       abi: CONTRACT_ABI,
       functionName: "createMarket",
-      args: [encodedTitle, BigInt(newMarket.duration), Number(newMarket.category)],
+      args: [encodedTitle, BigInt(selectedExpirationTimestamp), Number(newMarket.category)],
     });
   };
 
@@ -1571,11 +1620,14 @@ export default function Dashboard() {
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-fg-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
-                  Duration (seconds)
+                  Market Expiration
                 </label>
-                <select
-                  value={newMarket.duration}
-                  onChange={(e) => setNewMarket({ ...newMarket, duration: e.target.value })}
+                <input
+                  type="datetime-local"
+                  value={newMarket.expirationDateTime}
+                  min={minExpirationDateTime}
+                  max={maxExpirationDateTime}
+                  onChange={(e) => setNewMarket({ ...newMarket, expirationDateTime: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '0.75rem',
@@ -1586,13 +1638,20 @@ export default function Dashboard() {
                     borderRadius: '8px',
                     boxSizing: 'border-box',
                   }}
-                >
-                  <option value="86400">1 Day</option>
-                  <option value="259200">3 Days</option>
-                  <option value="604800">1 Week</option>
-                  <option value="2592000">1 Month</option>
-                  <option value="7884000">3 Months</option>
-                </select>
+                />
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-fg-muted)' }}>
+                  {!selectedExpirationTimestamp && 'Select a valid expiration date and time within the next year.'}
+                  {selectedExpirationTimestamp && expirationInPast && 'Expiration must be in the future.'}
+                  {selectedExpirationTimestamp && expirationTooFar && 'Expiration must be within the next year.'}
+                  {selectedExpirationTimestamp && !expirationInPast && !expirationTooFar
+                    ? `Stored on-chain as ${selectedExpirationTimestamp} and shown here in ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`
+                    : null}
+                </div>
+                {selectedExpirationTimestamp && (
+                  <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--color-fg-muted)' }}>
+                    Expires {new Date(selectedExpirationTimestamp * 1000).toLocaleString()}
+                  </div>
+                )}
               </div>
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-fg-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
@@ -1637,7 +1696,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isCreating || !newMarket.question}
+                  disabled={isCreating || !isCreateMarketFormValid}
                   style={{
                     flex: 1,
                     padding: '0.75rem',

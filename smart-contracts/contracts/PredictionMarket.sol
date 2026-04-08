@@ -290,14 +290,14 @@ contract PredictionMarket {
     // OWNER — WRITE
     // -----------------------------------------------------------------------
 
-    function createMarket(string calldata _question, uint256 _durationSeconds, uint8 _category) external onlyOwner {
-        require(bytes(_question).length > 0,      "Empty question");
-        require(_durationSeconds > 0,              "Zero duration");
-        require(_durationSeconds <= MAX_DURATION,  "Duration too long");
-        require(_category < CATEGORY_COUNT,        "Invalid category");
+    function createMarket(string calldata _question, uint256 _endTime, uint8 _category) external onlyOwner {
+        require(bytes(_question).length > 0,                 "Empty question");
+        require(_endTime > block.timestamp,                  "End time must be future");
+        require(_endTime <= block.timestamp + MAX_DURATION,  "End time too far");
+        require(_category < CATEGORY_COUNT,                  "Invalid category");
 
         uint256 id  = ++marketCount;
-        uint256 end = block.timestamp + _durationSeconds;
+        uint256 end = _endTime;
 
         markets[id] = Market({
             question:           _question,

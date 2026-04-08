@@ -488,7 +488,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "_durationSeconds",
+          "name": "_endTime",
           "type": "uint256"
         },
         {
