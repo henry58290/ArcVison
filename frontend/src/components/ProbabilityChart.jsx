@@ -5,6 +5,7 @@ import { fetchMarketLogs, calculateProbabilityTimeSeries } from './utils/logPars
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from './utils/contracts';
 
 export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdate }) {
+  const chartHeight = 84;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -103,7 +104,7 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
   if (error && chartData.length === 0) {
     return (
       <div style={{
-        height: '100px',
+        height: `${chartHeight}px`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -119,7 +120,7 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
   if (loading && chartData.length === 0) {
     return (
       <div style={{
-        height: '100px',
+        height: `${chartHeight}px`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -138,8 +139,8 @@ export default function ProbabilityChart({ marketId, initialYesOdds, onDataUpdat
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100px', minHeight: '100px' }}>
-      <ResponsiveContainer width="100%" height={100}>
+    <div style={{ position: 'relative', width: '100%', height: `${chartHeight}px`, minHeight: `${chartHeight}px` }}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
           <XAxis
             dataKey="time"
