@@ -630,7 +630,7 @@ export default function Dashboard() {
   return (
     <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
       {/* Hero Section */}
-      <section style={{ maxWidth: '1400px', margin: '0 auto 3rem', padding: '0 1rem' }}>
+      <section style={{ width: '100%', margin: '0 0 3rem', padding: '0 1rem' }}>
         {/* Admin Controls */}
         {isOwner && (
           <div style={{ 
@@ -666,7 +666,7 @@ export default function Dashboard() {
       </section>
 
       {/* Markets Section */}
-      <section id="markets" style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1rem' }}>
+      <section id="markets" style={{ width: '100%', margin: 0, padding: '0 1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.75rem', color: 'var(--color-fg)', letterSpacing: '0.02em' }}>
             MARKETS
@@ -892,11 +892,7 @@ export default function Dashboard() {
                 You haven't participated in any resolved markets yet.
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                gap: '20px',
-              }}>
+              <div className="market-grid">
                 {eligibleClaims.map((claim) => {
                   const { title, imageUrl, subcategory } = parseMarketTitle(claim.question);
                   const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
@@ -1050,11 +1046,7 @@ export default function Dashboard() {
                 No pending refunds. You haven't been part of any cancelled markets.
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                gap: '20px',
-              }}>
+              <div className="market-grid">
                 {pendingRefunds.map((refund) => {
                   const { title: refundTitle, subcategory: refundSubcategory } = parseMarketTitle(refund.question);
                   return (
@@ -1140,12 +1132,7 @@ export default function Dashboard() {
         )}
         
         {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length > 0 && viewMode === 'grid' && (
-          <div style={{ 
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(470px, 470px))',
-            gap: '20px',
-            justifyContent: 'center',
-          }}>
+          <div className="market-grid">
             {filteredMarkets.map((market) => {
               const { title, imageUrl, subcategory } = parseMarketTitle(market.question);
               const yesPercent = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
@@ -1159,10 +1146,10 @@ export default function Dashboard() {
                 <article
                   key={`${market.marketId}-${refreshKey}`}
                   style={{ 
-                    width: '470px',
-                    minWidth: '470px',
-                    background: '#ffffff',
-                    border: '1px solid #e4e4e7',
+                    width: '100%',
+                    minWidth: '0',
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border-subtle)',
                     borderRadius: '12px',
                     padding: '16px',
                     cursor: 'pointer',
@@ -1173,8 +1160,8 @@ export default function Dashboard() {
                   onClick={() => navigate(`/market/${market.marketId}`)}
                 >
                   {/* Card Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span style={{
                         display: 'inline-flex',
                         padding: '0.25rem 0.5rem',
@@ -1207,25 +1194,25 @@ export default function Dashboard() {
                         );
                       })()}
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)' }}>
+                    <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)' }}>
                       {market.status === 0 ? `Ends in ${formatTimeLeft(Number(market.endTime))}` : `Ended`}
                     </span>
                   </div>
 
                   {/* Image */}
                   {imageUrl && (
-                    <div style={{ marginBottom: '0.75rem', borderRadius: '8px', overflow: 'hidden' }}>
+                    <div style={{ marginBottom: '0.625rem', borderRadius: '6px', overflow: 'hidden' }}>
                       <img 
                         src={displayImageUrl} 
                         alt="" 
-                        style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                        style={{ width: '100%', height: '112px', objectFit: 'cover' }}
                         onError={(e) => { e.target.src = DEFAULT_PLACEHOLDER; }}
                       />
                     </div>
                   )}
 
                   {/* Title */}
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.5rem', lineHeight: 1.4 }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.375rem', lineHeight: 1.35 }}>
                     {title}
                   </h3>
 
@@ -1241,7 +1228,7 @@ export default function Dashboard() {
                       letterSpacing: '0.04em',
                       textTransform: 'uppercase',
                       borderRadius: '4px',
-                      marginBottom: '0.75rem',
+                      marginBottom: '0.625rem',
                     }}>
                       {subcategory}
                     </span>
@@ -1287,10 +1274,10 @@ export default function Dashboard() {
                     </div>
                   )}
                   {market.status === 0 && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-success)', fontWeight: '600' }}>YES {yesPercent}%</span>
-                        <span style={{ fontSize: '0.8125rem', color: 'var(--color-danger)', fontWeight: '600' }}>NO {noPercent}%</span>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>YES {yesPercent}%</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>NO {noPercent}%</span>
                       </div>
                       <div style={{ height: '6px', background: 'var(--color-surface-elevated)', borderRadius: '4px', overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
@@ -1300,7 +1287,7 @@ export default function Dashboard() {
 
                   {/* Resolution Result */}
                   {market.status === 1 && (
-                    <div style={{ marginBottom: '1rem', padding: '0.5rem', background: market.outcome ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', borderRadius: '4px', textAlign: 'center' }}>
+                    <div style={{ marginBottom: '0.75rem', padding: '0.45rem', background: market.outcome ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', borderRadius: '4px', textAlign: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: '600', color: market.outcome ? 'var(--color-success)' : 'var(--color-danger)', textTransform: 'uppercase' }}>
                         Result: {market.outcome ? "YES" : "NO"}
                       </span>
@@ -1324,7 +1311,7 @@ export default function Dashboard() {
                     const tradesAtCancel = cancelledInfo?.totalTradesAtCancel || 0n;
                     
                     return (
-                    <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--color-danger-bg)', borderRadius: '4px' }}>
+                    <div style={{ marginBottom: '0.75rem', padding: '0.625rem', background: 'var(--color-danger-bg)', borderRadius: '4px' }}>
                       <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)', textTransform: 'uppercase', marginBottom: '0.5rem', textAlign: 'center' }}>
                         Market Cancelled
                       </div>
