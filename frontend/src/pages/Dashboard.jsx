@@ -913,7 +913,7 @@ export default function Dashboard() {
                         <img 
                           src={displayImageUrl} 
                           alt="" 
-                          style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                          style={{ width: '100%', height: '112px', objectFit: 'cover' }}
                           onError={(e) => { e.target.src = DEFAULT_PLACEHOLDER; }}
                         />
                       </div>
@@ -974,11 +974,13 @@ export default function Dashboard() {
                   return (
                   <article
                     key={`claimed-${claim.marketId}`}
-                    style={{ 
+                    style={{
+                      width: '100%',
+                      minWidth: '0',
                       background: 'var(--color-surface)',
                       border: '1px solid var(--color-border-subtle)',
                       borderRadius: '12px',
-                      padding: '1.5rem',
+                      padding: '16px',
                       opacity: 0.7,
                     }}
                   >
@@ -987,7 +989,7 @@ export default function Dashboard() {
                         <img 
                           src={displayImageUrl} 
                           alt="" 
-                          style={{ width: '100%', height: '140px', objectFit: 'cover' }}
+                          style={{ width: '100%', height: '112px', objectFit: 'cover' }}
                           onError={(e) => { e.target.src = DEFAULT_PLACEHOLDER; }}
                         />
                       </div>
@@ -1138,10 +1140,7 @@ export default function Dashboard() {
               const yesPercent = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
               const noPercent = 100 - yesPercent;
               const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
-              
-              const yesPrice = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
-              const noPrice = 100 - yesPrice;
-              
+
               return (
                 <article
                   key={`${market.marketId}-${refreshKey}`}
@@ -1238,49 +1237,38 @@ export default function Dashboard() {
                   {market.status === 0 && (
                     <div style={{ marginBottom: '1rem' }}>
                       <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
-                        <div style={{ width: `${yesPrice}%`, background: '#3b82f6', borderRadius: '4px 0 0 4px' }} />
-                        <div style={{ width: `${noPrice}%`, background: '#ef4444', borderRadius: '0 4px 4px 0' }} />
+                        <div style={{ width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px 0 0 4px' }} />
+                        <div style={{ width: `${noPercent}%`, background: 'var(--color-danger)', borderRadius: '0 4px 4px 0' }} />
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: '600' }}>{yesPrice}%</span>
-                        <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: '600' }}>{noPrice}%</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>{yesPercent}%</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>{noPercent}%</span>
                       </div>
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <span style={{ 
-                          flex: 1, 
-                          padding: '8px 12px', 
-                          background: '#eff6ff', 
-                          color: '#2563eb', 
-                          borderRadius: '20px', 
-                          fontSize: '0.8125rem', 
+                        <span style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          background: 'var(--color-success-bg)',
+                          color: 'var(--color-success)',
+                          borderRadius: '20px',
+                          fontSize: '0.8125rem',
                           fontWeight: '600',
                           textAlign: 'center',
                         }}>
-                          YES {yesPrice}¢
+                          YES {yesPercent}¢
                         </span>
-                        <span style={{ 
-                          flex: 1, 
-                          padding: '8px 12px', 
-                          background: '#fef2f2', 
-                          color: '#dc2626', 
-                          borderRadius: '20px', 
-                          fontSize: '0.8125rem', 
+                        <span style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          background: 'var(--color-danger-bg)',
+                          color: 'var(--color-danger)',
+                          borderRadius: '20px',
+                          fontSize: '0.8125rem',
                           fontWeight: '600',
                           textAlign: 'center',
                         }}>
-                          NO {noPrice}¢
+                          NO {noPercent}¢
                         </span>
-                      </div>
-                    </div>
-                  )}
-                  {market.status === 0 && (
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>YES {yesPercent}%</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>NO {noPercent}%</span>
-                      </div>
-                      <div style={{ height: '6px', background: 'var(--color-surface-elevated)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px', transition: 'width 0.4s ease' }} />
                       </div>
                     </div>
                   )}
