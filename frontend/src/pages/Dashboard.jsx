@@ -3,6 +3,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { parseEther, formatEther } from "viem";
 import ProbabilityChart from "../components/ProbabilityChart";
+import MarketCard from "../components/MarketCard";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../components/utils/contracts";
 import { clearCache } from "../components/utils/indexedDb";
 
@@ -1135,296 +1136,26 @@ export default function Dashboard() {
         
         {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length > 0 && viewMode === 'grid' && (
           <div className="market-grid">
-            {filteredMarkets.map((market) => {
-              const { title, imageUrl, subcategory } = parseMarketTitle(market.question);
-              const yesPercent = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
-              const noPercent = 100 - yesPercent;
-              const displayImageUrl = imageUrl || DEFAULT_PLACEHOLDER;
-
-              return (
-                <article
-                  key={`${market.marketId}-${refreshKey}`}
-                  style={{ 
-                    width: '100%',
-                    minWidth: '0',
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border-subtle)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    cursor: 'pointer',
-                    transition: 'all 0.25s ease',
-                    opacity: market.status === 0 ? 1 : 0.7,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                  }}
-                  onClick={() => navigate(`/market/${market.marketId}`)}
-                >
-                  {/* Card Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        padding: '0.25rem 0.5rem',
-                        background: market.status === 0 ? '#166534' : market.status === 1 ? '#1e40af' : '#991b1b',
-                        color: '#fff',
-                        fontSize: '0.625rem',
-                        fontWeight: '600',
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        borderRadius: '4px',
-                      }}>
-                        {MarketStatus[market.status]}
-                      </span>
-                      {(() => {
-                        const cat = CATEGORIES[Number(market.category)] || CATEGORIES[5];
-                        return (
-                          <span style={{
-                            display: 'inline-flex',
-                            padding: '0.25rem 0.5rem',
-                            background: cat.bg,
-                            color: cat.color,
-                            fontSize: '0.625rem',
-                            fontWeight: '600',
-                            letterSpacing: '0.05em',
-                            textTransform: 'uppercase',
-                            borderRadius: '4px',
-                          }}>
-                            {cat.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)' }}>
-                      {market.status === 0 ? `Ends in ${formatTimeLeft(Number(market.endTime))}` : `Ended`}
-                    </span>
-                  </div>
-
-                  {/* Image */}
-                  {imageUrl && (
-                    <div style={{ marginBottom: '0.625rem', borderRadius: '6px', overflow: 'hidden' }}>
-                      <img 
-                        src={displayImageUrl} 
-                        alt="" 
-                        style={{ width: '100%', height: '112px', objectFit: 'cover' }}
-                        onError={(e) => { e.target.src = DEFAULT_PLACEHOLDER; }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Title */}
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--color-fg)', marginBottom: '0.375rem', lineHeight: 1.35 }}>
-                    {title}
-                  </h3>
-
-                  {/* Subcategory Badge */}
-                  {subcategory && (
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '0.2rem 0.5rem',
-                      background: 'rgba(139,92,246,0.15)',
-                      color: '#8b5cf6',
-                      fontSize: '0.625rem',
-                      fontWeight: '600',
-                      letterSpacing: '0.04em',
-                      textTransform: 'uppercase',
-                      borderRadius: '4px',
-                      marginBottom: '0.625rem',
-                    }}>
-                      {subcategory}
-                    </span>
-                  )}
-
-                  {/* Price Bar - YES/NO Split */}
-                  {market.status === 0 && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
-                        <div style={{ width: `${yesPercent}%`, background: 'var(--color-success)', borderRadius: '4px 0 0 4px' }} />
-                        <div style={{ width: `${noPercent}%`, background: 'var(--color-danger)', borderRadius: '0 4px 4px 0' }} />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>{yesPercent}%</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>{noPercent}%</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                        <span style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          background: 'var(--color-success-bg)',
-                          color: 'var(--color-success)',
-                          borderRadius: '20px',
-                          fontSize: '0.8125rem',
-                          fontWeight: '600',
-                          textAlign: 'center',
-                        }}>
-                          YES {yesPercent}¢
-                        </span>
-                        <span style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          background: 'var(--color-danger-bg)',
-                          color: 'var(--color-danger)',
-                          borderRadius: '20px',
-                          fontSize: '0.8125rem',
-                          fontWeight: '600',
-                          textAlign: 'center',
-                        }}>
-                          NO {noPercent}¢
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Resolution Result */}
-                  {market.status === 1 && (
-                    <div style={{ marginBottom: '0.75rem', padding: '0.45rem', background: market.outcome ? 'var(--color-success-bg)' : 'var(--color-danger-bg)', borderRadius: '4px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: market.outcome ? 'var(--color-success)' : 'var(--color-danger)', textTransform: 'uppercase' }}>
-                        Result: {market.outcome ? "YES" : "NO"}
-                      </span>
-                      {isConnected && address && (
-                        <ClaimWinningsButton 
-                          marketId={market.marketId} 
-                          userAddress={address}
-                          refreshKey={refreshKey}
-                          onClaimed={handleClaimedChange}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cancelled Market - Claim Refund */}
-                  {market.status === 2 && (() => {
-                    const cancelledInfo = cancelledMarketInfo[market.marketId];
-                    const volumeAtCancel = cancelledInfo 
-                      ? cancelledInfo.totalYesAtCancel + cancelledInfo.totalNoAtCancel 
-                      : 0n;
-                    const tradesAtCancel = cancelledInfo?.totalTradesAtCancel || 0n;
-                    
-                    return (
-                    <div style={{ marginBottom: '0.75rem', padding: '0.625rem', background: 'var(--color-danger-bg)', borderRadius: '4px' }}>
-                      <div style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-danger)', textTransform: 'uppercase', marginBottom: '0.5rem', textAlign: 'center' }}>
-                        Market Cancelled
-                      </div>
-                      {cancelledInfo?.reason && (
-                        <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)', marginBottom: '0.5rem', textAlign: 'center' }}>
-                          "{cancelledInfo.reason}"
-                        </div>
-                      )}
-                      <div style={{ fontSize: '0.6875rem', color: 'var(--color-fg-muted)', marginBottom: '0.75rem', textAlign: 'center' }}>
-                        Volume at cancel: {formatVolume(volumeAtCancel)}
-                      </div>
-                      {isConnected && address && (
-                        <RefundButton marketId={market.marketId} userAddress={address} />
-                      )}
-                    </div>
-                    );
-                  })()}
-
-                  {/* Footer */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ display: 'flex' }}>
-                        {[1,2,3].map(i => (
-                          <div key={i} style={{ 
-                            width: '24px', 
-                            height: '24px', 
-                            borderRadius: '50%', 
-                            background: i === 1 ? '#3b82f6' : i === 2 ? '#22c55e' : '#f97316',
-                            border: '2px solid #fff',
-                            marginLeft: i > 1 ? '-8px' : '0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.625rem',
-                            fontWeight: '600',
-                            color: '#fff',
-                          }}>
-                            {i === 3 ? '+' : ''}
-                          </div>
-                        ))}
-                      </div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
-                        +{market.totalTrades.toString()} traders
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-fg-dim)" strokeWidth="2">
-                          <path d="M18 20V10M12 20V4M6 20v-6" />
-                        </svg>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--color-fg-dim)', fontWeight: '500' }}>
-                          {formatVolume(market.totalVolume)}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-fg-dim)" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span style={{ fontSize: '0.75rem', color: market.status === 0 ? 'var(--color-accent)' : 'var(--color-fg-dim)', fontWeight: '500' }}>
-                          {market.status === 0 ? formatTimeLeft(Number(market.endTime)) : 'Ended'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Admin Resolve Button */}
-                  {isOwner && market.status === 0 && (
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShowResolveModal({ marketId: market.marketId, outcome: true }); }}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          fontSize: '0.625rem',
-                          fontWeight: '600',
-                          background: 'var(--color-success)',
-                          color: 'var(--color-accent-fg)',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Resolve YES
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShowResolveModal({ marketId: market.marketId, outcome: false }); }}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          fontSize: '0.625rem',
-                          fontWeight: '600',
-                          background: 'var(--color-danger)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Resolve NO
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShowCancelModal({ marketId: market.marketId }); }}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem',
-                          fontSize: '0.625rem',
-                          fontWeight: '600',
-                          background: 'var(--color-fg-dim)',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+            {filteredMarkets.map((market) => (
+              <MarketCard
+                key={`${market.marketId}-${refreshKey}`}
+                market={market}
+                categories={CATEGORIES}
+                parseMarketTitle={parseMarketTitle}
+                formatVolume={formatVolume}
+                formatTimeLeft={formatTimeLeft}
+                isOwner={isOwner}
+                isConnected={isConnected}
+                address={address}
+                onResolve={setShowResolveModal}
+                onCancel={setShowCancelModal}
+                cancelledMarketInfo={cancelledMarketInfo}
+                ClaimWinningsButton={ClaimWinningsButton}
+                RefundButton={RefundButton}
+                refreshKey={refreshKey}
+                onClaimed={handleClaimedChange}
+              />
+            ))}
           </div>
         )}
 

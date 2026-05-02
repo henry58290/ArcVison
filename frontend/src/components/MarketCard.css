@@ -1,0 +1,498 @@
+/* ═══════════════════════════════════════════════════════════════════
+   MarketCard — Premium Prediction Market Card
+   Inspired by TCG card framing: header, hero, body, footer zones
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Card Shell ── */
+.mcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal),
+    border-color var(--transition-normal);
+  box-shadow:
+    0 1px 3px var(--color-shadow),
+    0 0 0 0 transparent;
+}
+
+.mcard:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mcard:active {
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.mcard--resolved {
+  opacity: 0.85;
+}
+
+.mcard--cancelled {
+  opacity: 0.7;
+}
+
+/* ── Accent Edge (top border highlight) ── */
+.mcard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--mcard-accent, var(--color-accent)), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.mcard:hover::before {
+  opacity: 1;
+}
+
+.mcard--open { --mcard-accent: var(--color-success); }
+.mcard--resolved { --mcard-accent: #3b82f6; }
+.mcard--cancelled { --mcard-accent: var(--color-danger); }
+
+/* ── Header Zone ── */
+.mcard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+  gap: 8px;
+}
+
+.mcard__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mcard__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.mcard__badge--status {
+  color: #fff;
+}
+
+.mcard__badge--open { background: #166534; }
+.mcard__badge--resolved { background: #1e40af; }
+.mcard__badge--cancelled { background: #991b1b; }
+
+.mcard__badge--category {
+  border: 1px solid currentColor;
+  opacity: 0.9;
+}
+
+.mcard__time {
+  font-size: 0.6875rem;
+  color: var(--color-fg-dim);
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mcard__time svg {
+  opacity: 0.6;
+}
+
+/* ── Hero Zone (Image) ── */
+.mcard__hero {
+  position: relative;
+  margin: 0 12px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: var(--color-bg-soft);
+}
+
+.mcard__hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.mcard:hover .mcard__hero img {
+  transform: scale(1.03);
+}
+
+/* Gradient overlay on image for text readability */
+.mcard__hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  pointer-events: none;
+}
+
+/* ── Body Zone ── */
+.mcard__body {
+  padding: 12px 16px 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mcard__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-fg);
+  line-height: 1.4;
+  margin: 0 0 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mcard__subcategory {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  width: fit-content;
+}
+
+/* ── Probability Gauge ── */
+.mcard__gauge {
+  margin-bottom: 12px;
+}
+
+.mcard__gauge-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  background: var(--color-bg-soft);
+}
+
+.mcard__gauge-fill--yes {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  border-radius: 3px 0 0 3px;
+  transition: width var(--transition-slow);
+}
+
+.mcard__gauge-fill--no {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  border-radius: 0 3px 3px 0;
+  transition: width var(--transition-slow);
+}
+
+.mcard__gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mcard__gauge-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.mcard__gauge-label--yes { color: var(--color-success); }
+.mcard__gauge-label--no { color: var(--color-danger); }
+
+/* ── Action Buttons (YES/NO) ── */
+.mcard__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.mcard__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.mcard__btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent);
+  pointer-events: none;
+}
+
+.mcard__btn:hover {
+  transform: translateY(-1px);
+}
+
+.mcard__btn:active {
+  transform: translateY(0);
+}
+
+.mcard__btn--yes {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-success);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.mcard__btn--yes:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+}
+
+.mcard__btn--no {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.mcard__btn--no:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.mcard__btn-price {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* ── Resolution Banner ── */
+.mcard__resolution {
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mcard__resolution--yes {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.mcard__resolution--no {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ── Cancelled Banner ── */
+.mcard__cancelled-info {
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  text-align: center;
+}
+
+.mcard__cancelled-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-danger);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.mcard__cancelled-reason {
+  font-size: 0.625rem;
+  color: var(--color-fg-muted);
+  font-style: italic;
+}
+
+/* ── Footer Zone ── */
+.mcard__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  margin-top: auto;
+}
+
+.mcard__meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mcard__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6875rem;
+  color: var(--color-fg-dim);
+  font-weight: 500;
+}
+
+.mcard__meta-item svg {
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* Trader avatars stack */
+.mcard__traders {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mcard__avatar-stack {
+  display: flex;
+}
+
+.mcard__avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mcard__avatar:not(:first-child) {
+  margin-left: -6px;
+}
+
+.mcard__avatar--1 { background: #6366f1; }
+.mcard__avatar--2 { background: #06b6d4; }
+.mcard__avatar--3 { background: #f59e0b; }
+
+/* ── Admin Controls ── */
+.mcard__admin {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.mcard__admin-btn {
+  flex: 1;
+  padding: 7px 8px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: #fff;
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.mcard__admin-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.mcard__admin-btn--yes { background: var(--color-success); }
+.mcard__admin-btn--no { background: var(--color-danger); }
+.mcard__admin-btn--cancel { background: var(--color-fg-dim); }
+
+/* ── Responsive ── */
+@container market-main (max-width: 679px) {
+  .mcard__hero {
+    aspect-ratio: 2 / 1;
+  }
+
+  .mcard__title {
+    font-size: 0.875rem;
+  }
+}
+
+/* ── Focus / Accessibility ── */
+.mcard:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Skeleton Loading State ── */
+.mcard--loading {
+  pointer-events: none;
+}
+
+.mcard--loading .mcard__hero,
+.mcard--loading .mcard__title,
+.mcard--loading .mcard__gauge-bar,
+.mcard--loading .mcard__btn {
+  background: var(--color-bg-soft);
+  animation: mcard-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes mcard-shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Pulse animation for live markets ── */
+.mcard__live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: mcard-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mcard-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
