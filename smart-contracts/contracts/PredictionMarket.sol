@@ -257,6 +257,19 @@ contract PredictionMarket {
     event FeesWithdrawn(address indexed to, uint256 amount);
     event FeeUpdated(uint256 newFeeBps);
 
+    // Emitted when a user sells their position back to the pool.
+    event Sell(
+        uint256 indexed marketId,
+        address indexed user,
+        bool    side,
+        uint256 amount,       // shares sold (removed from pool)
+        uint256 returnValue,  // ETH returned to user after fee
+        uint256 yesOdds,      // YES price after this trade, scaled ×10000
+        uint256 noOdds,       // NO  price after this trade, scaled ×10000
+        uint256 totalYes,     // YES pool size after this trade
+        uint256 totalNo       // NO  pool size after this trade
+    );
+
     // -----------------------------------------------------------------------
     // MODIFIERS
     // -----------------------------------------------------------------------
@@ -457,6 +470,99 @@ contract PredictionMarket {
             msg.sender,
             _side,
             netBet,
+            yOdds,
+            nOdds,
+            m.totalYes,
+            m.totalNo
+        );
+    }
+
+    // ------------------------------------------------------------------
+    // sellPosition — sell shares back to the pool at current market odds.
+    //
+    // The return value is based on the position's implied value given the
+    // current pool ratio (odds), minus the protocol fee. This creates a
+    // proper secondary market: if you bought YES at 40¢ and odds moved
+    // to 70%, you can sell for ~70¢ per share (minus fee), locking in
+    // profit without waiting for resolution.
+    //
+    // Formula:
+    //   grossReturn = (sellAmount * sideOdds) / ODDS_PRECISION
+    //   fee         = (grossReturn * feeBps) / FEE_DENOMINATOR
+    //   netReturn   = grossReturn - fee
+    //
+    // Pool effect: removes sellAmount from the user's side, shifting
+    // odds toward the opposite side (selling YES lowers YES odds).
+    //
+    // Constraints:
+    //   - Market must be Open and betting window still active
+    //   - Cannot sell more than your position
+    //   - Minimum sell amount: MIN_BET (prevents dust attacks)
+    //   - Pool must retain enough liquidity to cover the payout
+    // ------------------------------------------------------------------
+    function sellPosition(uint256 _marketId, bool _side, uint256 _amount)
+        external
+        nonReentrant
+        marketExists(_marketId)
+    {
+        Market storage m = markets[_marketId];
+
+        require(m.status == MarketStatus.Open, "Market not open");
+        require(block.timestamp < m.endTime,   "Betting window closed");
+        require(_amount >= MIN_BET,            "Below minimum sell");
+
+        // Check user has enough shares
+        if (_side) {
+            require(yesBets[_marketId][msg.sender] >= _amount, "Insufficient YES position");
+        } else {
+            require(noBets[_marketId][msg.sender] >= _amount, "Insufficient NO position");
+        }
+
+        // Calculate return value at current odds BEFORE removing liquidity.
+        // This gives the seller the price based on the pool state they're
+        // exiting, which is fair (they contributed to that state).
+        (uint256 yOddsBefore, uint256 nOddsBefore) = _calcOdds(m.totalYes, m.totalNo);
+        uint256 sideOdds = _side ? yOddsBefore : nOddsBefore;
+
+        uint256 grossReturn = (_amount * sideOdds) / ODDS_PRECISION;
+
+        // Ensure the contract has enough ETH to pay out.
+        // The pool always holds totalYes + totalNo + accruedFees in ETH.
+        // We must not pay out more than is available from this market's pools.
+        uint256 totalPool = m.totalYes + m.totalNo;
+        require(grossReturn <= totalPool, "Insufficient pool liquidity");
+
+        // Apply fee
+        uint256 fee = (grossReturn * feeBps) / FEE_DENOMINATOR;
+        uint256 netReturn = grossReturn - fee;
+
+        // Effects: update state before external call (checks-effects-interactions)
+        accruedFees           += fee;
+        globalTotalFeesEarned += fee;
+
+        if (_side) {
+            yesBets[_marketId][msg.sender] -= _amount;
+            m.totalYes -= _amount;
+        } else {
+            noBets[_marketId][msg.sender] -= _amount;
+            m.totalNo -= _amount;
+        }
+
+        m.totalTrades++;
+        globalTotalTrades++;
+
+        // Compute price snapshot AFTER pools are updated
+        (uint256 yOdds, uint256 nOdds) = _calcOdds(m.totalYes, m.totalNo);
+
+        // Interaction: transfer ETH to seller
+        _safeTransfer(msg.sender, netReturn);
+
+        emit Sell(
+            _marketId,
+            msg.sender,
+            _side,
+            _amount,
+            netReturn,
             yOdds,
             nOdds,
             m.totalYes,
@@ -1240,6 +1346,33 @@ contract PredictionMarket {
 
         if (losePool == 0) return netBet;
         estimatedPayout = netBet + (netBet * losePool) / winPool;
+    }
+
+    // ------------------------------------------------------------------
+    // getSellQuote — preview what a user would receive for selling.
+    //
+    // Returns the gross return, fee, and net return for a given sell.
+    // Use this to power the "Expected Return" preview in the sell UI.
+    // ------------------------------------------------------------------
+    function getSellQuote(uint256 _marketId, bool _side, uint256 _amount)
+        external
+        view
+        marketExists(_marketId)
+        returns (
+            uint256 grossReturn,
+            uint256 fee,
+            uint256 netReturn,
+            uint256 pricePerShare  // effective price in basis points (e.g. 7000 = 70¢)
+        )
+    {
+        Market storage m = markets[_marketId];
+        (uint256 yOdds, uint256 nOdds) = _calcOdds(m.totalYes, m.totalNo);
+        uint256 sideOdds = _side ? yOdds : nOdds;
+
+        grossReturn   = (_amount * sideOdds) / ODDS_PRECISION;
+        fee           = (grossReturn * feeBps) / FEE_DENOMINATOR;
+        netReturn     = grossReturn - fee;
+        pricePerShare = sideOdds;  // same scale as odds (×10000)
     }
 
     // -----------------------------------------------------------------------
