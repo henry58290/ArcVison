@@ -580,8 +580,9 @@ export default function MarketDetail() {
               padding: '0.875rem 0.75rem', fontSize: '0.9375rem', fontWeight: '700',
               fontFamily: 'var(--font-body)',
               background: selectedSide === true ? '#22c55e' : 'var(--color-surface-elevated)',
-              color: '#fff',
-              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              color: selectedSide === true ? '#fff' : 'var(--color-fg)',
+              border: selectedSide === true ? 'none' : '1px solid var(--color-border-subtle)',
+              borderRadius: '8px', cursor: 'pointer',
               transition: 'all 0.15s ease',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             }}
@@ -597,8 +598,9 @@ export default function MarketDetail() {
               padding: '0.875rem 0.75rem', fontSize: '0.9375rem', fontWeight: '700',
               fontFamily: 'var(--font-body)',
               background: selectedSide === false ? '#ef4444' : 'var(--color-surface-elevated)',
-              color: '#fff',
-              border: 'none', borderRadius: '8px', cursor: 'pointer',
+              color: selectedSide === false ? '#fff' : 'var(--color-fg)',
+              border: selectedSide === false ? 'none' : '1px solid var(--color-border-subtle)',
+              borderRadius: '8px', cursor: 'pointer',
               transition: 'all 0.15s ease',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
             }}
@@ -670,8 +672,8 @@ export default function MarketDetail() {
                     padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: '600',
                     fontFamily: 'var(--font-body)',
                     background: 'var(--color-surface-elevated)',
-                    color: 'var(--color-fg-dim)',
-                    border: 'none', borderRadius: '999px', cursor: 'pointer',
+                    color: 'var(--color-fg)',
+                    border: '1px solid var(--color-border-subtle)', borderRadius: '999px', cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -837,8 +839,8 @@ export default function MarketDetail() {
                     padding: '0.375rem 0.75rem', fontSize: '0.6875rem', fontWeight: '600',
                     fontFamily: 'var(--font-body)',
                     background: 'var(--color-surface-elevated)',
-                    color: 'var(--color-fg-dim)',
-                    border: 'none', borderRadius: '999px', cursor: 'pointer',
+                    color: 'var(--color-fg)',
+                    border: '1px solid var(--color-border-subtle)', borderRadius: '999px', cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
