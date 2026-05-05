@@ -302,11 +302,13 @@ export default function MarketDetail() {
   );
 
   const yesPercent = odds
-    ? Math.round(Number(odds[0]) / 100)
+    ? Number(odds[0]) / 100
     : market?.yesOdds
-      ? Math.round(Number(market.yesOdds) / 100)
+      ? Number(market.yesOdds) / 100
       : 50;
   const noPercent = 100 - yesPercent;
+  const yesPercentDisplay = yesPercent.toFixed(2);
+  const noPercentDisplay = noPercent.toFixed(2);
 
   const endTime = market ? Number(market.endTime) : 0;
   const countdown = useCountdown(endTime);
@@ -589,7 +591,7 @@ export default function MarketDetail() {
           >
             Yes
             <span style={{ fontSize: '0.8125rem', fontWeight: '500', opacity: 0.9 }}>
-              {yesPercent}¢
+              {yesPercentDisplay}¢
             </span>
           </button>
           <button
@@ -607,7 +609,7 @@ export default function MarketDetail() {
           >
             No
             <span style={{ fontSize: '0.8125rem', fontWeight: '500', opacity: 0.9 }}>
-              {noPercent}¢
+              {noPercentDisplay}¢
             </span>
           </button>
         </div>
@@ -691,7 +693,7 @@ export default function MarketDetail() {
                 }}>
                   <span style={{ fontSize: '0.6875rem', color: 'var(--color-fg-dim)' }}>Avg Price</span>
                   <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-fg)' }}>
-                    {selectedSide ? yesPercent : noPercent}¢
+                    {selectedSide ? yesPercentDisplay : noPercentDisplay}¢
                   </span>
                 </div>
                 <div style={{
@@ -1027,7 +1029,7 @@ export default function MarketDetail() {
               fontSize: '0.9375rem', fontWeight: '700', color: 'var(--color-fg)',
               fontFamily: 'var(--font-body)',
             }}>
-              {yesPercent}¢
+              {yesPercentDisplay}¢
             </span>
             <span style={{
               fontSize: '0.75rem', color: 'var(--color-fg-dim)', fontWeight: '500',
@@ -1397,11 +1399,11 @@ export default function MarketDetail() {
         <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '12px', height: '3px', background: 'var(--color-success)', borderRadius: '2px', display: 'inline-block' }} />
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>Yes {yesPercent}%</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-success)', fontWeight: '600' }}>Yes {yesPercentDisplay}%</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ width: '12px', height: '3px', background: 'var(--color-danger)', borderRadius: '2px', display: 'inline-block' }} />
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>No {noPercent}%</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-danger)', fontWeight: '600' }}>No {noPercentDisplay}%</span>
           </div>
         </div>
 
