@@ -10,6 +10,7 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../components/utils/contracts';
 import { fetchMarketLogs, calculateProbabilityTimeSeries } from '../components/utils/logParser';
 import { clearCache } from '../components/utils/indexedDb';
 import { useNotification } from '../components/NotificationProvider';
+import { appendBet } from '../components/profile/mockBets';
 
 /* ────────────────────────── constants ────────────────────────── */
 
@@ -411,6 +412,10 @@ export default function MarketDetail() {
     loadChartData(true);
   }, [marketId, refetchMarket, refetchOdds, loadChartData]);
 
+  // Dedupe trade-history persistence by tx hash so the effect can't append twice
+  // for the same confirmed tx.
+  const recordedTxRef = useRef(new Set());
+
   // After trade is confirmed on-chain
   useEffect(() => {
     if (tradeConfirmed) {
@@ -420,6 +425,22 @@ export default function MarketDetail() {
       refreshAllData();
       refetchYesBet();
       refetchNoBet();
+
+      // Persist to local trade history (Profile page reads this).
+      if (tradeHash && !recordedTxRef.current.has(tradeHash)) {
+        recordedTxRef.current.add(tradeHash);
+        appendBet({
+          id: tradeHash,
+          market: title || market?.question || `Market #${marketId}`,
+          position: selectedSide ? 'YES' : 'NO',
+          wagered: parseFloat(amt) || 0,
+          status: 'Active',
+          outcome: null,
+          pnl: 0,
+          date: new Date().toISOString().slice(0, 10),
+          txHash: tradeHash,
+        });
+      }
     }
   }, [tradeConfirmed, refreshAllData]);
 

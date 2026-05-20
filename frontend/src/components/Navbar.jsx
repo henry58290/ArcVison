@@ -1,14 +1,118 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useDisconnect } from "wagmi";
 import { useTheme } from "./ThemeProvider";
+
+function WalletDropdown({ account, onClose }) {
+  const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(account.address || '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <div
+      className="absolute right-0 mt-2 w-64 rounded-2xl bg-surface border border-border p-2 z-50 shadow-2xl"
+      style={{ animation: 'scaleIn 0.15s ease' }}
+    >
+      <div className="px-3 py-3 border-b border-border-subtle">
+        <div className="text-[11px] uppercase tracking-wider text-fg-dim font-semibold mb-1">
+          Balance
+        </div>
+        <div className="text-lg font-bold text-fg">
+          {account.displayBalance || '0.00'}
+        </div>
+        <div className="text-xs text-fg-dim font-mono mt-1">
+          {account.displayName}
+        </div>
+      </div>
+
+      <button
+        onClick={() => { onClose(); navigate('/profile'); }}
+        className="w-full flex items-center gap-3 px-3 py-2.5 mt-1 rounded-lg text-sm font-medium text-fg hover:bg-surface-elevated transition text-left"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        My Profile
+      </button>
+
+      <button
+        onClick={copy}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-fg hover:bg-surface-elevated transition text-left"
+      >
+        {copied ? (
+          <>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Copied
+          </>
+        ) : (
+          <>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            Copy Address
+          </>
+        )}
+      </button>
+
+      <div className="h-px bg-border-subtle my-1" />
+
+      <button
+        onClick={() => { onClose(); disconnect(); }}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-danger-bg transition text-left"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        Disconnect
+      </button>
+    </div>
+  );
+}
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const settingsRef = useRef(null);
+  const walletRef = useRef(null);
   const location = useLocation();
   const { theme, setThemeMode } = useTheme();
+
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') setWalletMenuOpen(false);
+    };
+    const handleClickOutside = (e) => {
+      if (walletRef.current && !walletRef.current.contains(e.target)) {
+        setWalletMenuOpen(false);
+      }
+    };
+    if (walletMenuOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [walletMenuOpen]);
+
+  useEffect(() => { setWalletMenuOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -338,41 +442,49 @@ function Navbar() {
                       }
 
                       return (
-                        <button
-                          onClick={openAccountModal}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            padding: '0.5rem 1.5rem',
-                            fontFamily: 'IBM Plex Mono, monospace',
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            letterSpacing: '0.02em',
-                            textTransform: 'uppercase',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            background: 'var(--color-surface-elevated)',
-                            color: 'var(--color-fg)',
-                            minHeight: '40px',
-                          }}
-                        >
-                          <span
+                        <div ref={walletRef} style={{ position: 'relative' }}>
+                          <button
+                            onClick={() => setWalletMenuOpen((o) => !o)}
                             style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
-                              background: 'var(--color-success)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              padding: '0.5rem 1.5rem',
+                              fontFamily: 'IBM Plex Mono, monospace',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              letterSpacing: '0.02em',
+                              textTransform: 'uppercase',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              background: 'var(--color-surface-elevated)',
+                              color: 'var(--color-fg)',
+                              minHeight: '40px',
                             }}
-                            aria-hidden="true"
-                          />
-                          {account.displayName}
-                          {account.displayBalance
-                            ? ` (${account.displayBalance})`
-                            : ''}
-                        </button>
+                          >
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: 'var(--color-success)',
+                              }}
+                              aria-hidden="true"
+                            />
+                            {account.displayName}
+                            {account.displayBalance
+                              ? ` (${account.displayBalance})`
+                              : ''}
+                          </button>
+                          {walletMenuOpen && (
+                            <WalletDropdown
+                              account={account}
+                              onClose={() => setWalletMenuOpen(false)}
+                            />
+                          )}
+                        </div>
                       );
                     })()}
                   </div>

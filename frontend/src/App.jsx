@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import MarketDetail from "./pages/MarketDetail";
 import Swap from "./pages/Swap";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/market/:id" element={<MarketDetail />} />
           <Route path="/swap" element={<Swap />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/resolve" element={<Navigate to="/?tab=resolved" replace />} />
         </Routes>
       </div>

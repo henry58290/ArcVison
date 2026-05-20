@@ -172,7 +172,7 @@ contract PredictionMarket {
     uint256 public constant MAX_DURATION      = 365 days;
     uint256 public constant RESOLUTION_WINDOW = 3 days;
     uint256 public constant FEE_DENOMINATOR   = 100_000;
-    uint256 public constant DEFAULT_FEE       = 25;
+    uint256 public constant DEFAULT_FEE       = 750;
     uint256 public constant MAX_FEE_BPS       = 2_500;
     uint256 public constant MIN_BET           = 0.001 ether;
     uint256 public constant ODDS_PRECISION    = 10_000;

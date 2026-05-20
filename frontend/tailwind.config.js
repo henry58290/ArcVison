@@ -25,6 +25,7 @@ export default {
       fontFamily: {
         display: ['Bebas Neue', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       spacing: {
         'xs': 'var(--space-xs)',
