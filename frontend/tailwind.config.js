@@ -21,11 +21,16 @@ export default {
         'danger-bg': 'var(--color-danger-bg)',
         border: 'var(--color-border)',
         'border-subtle': 'var(--color-border-subtle)',
+        violet: 'var(--color-violet)',
+        'violet-soft': 'var(--color-violet-soft)',
+        cyan: 'var(--color-cyan)',
+        yes: 'var(--color-yes)',
+        no: 'var(--color-no)',
       },
       fontFamily: {
         display: ['Bebas Neue', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'monospace'],
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'IBM Plex Mono', 'ui-monospace', 'monospace'],
+        sans: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       spacing: {
         'xs': 'var(--space-xs)',
@@ -41,6 +46,7 @@ export default {
         'md': 'var(--radius-md)',
         'lg': 'var(--radius-lg)',
         'xl': 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
       },
       transitionTimingFunction: {
         'out-expo': 'var(--ease-out-expo)',

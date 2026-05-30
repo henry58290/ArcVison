@@ -148,15 +148,16 @@ function Navbar() {
   ];
 
   return (
-    <header 
+    <header
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         zIndex: 100,
-        background: 'rgba(var(--color-bg-rgb), 0.9)',
-        backdropFilter: 'blur(12px)',
+        background: 'rgba(var(--color-bg-rgb), 0.72)',
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
     >
@@ -172,51 +173,93 @@ function Navbar() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
-            <img 
-              src="/logos/arcvision.png" 
-              alt="ArcVison" 
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '11px', textDecoration: 'none' }}>
+            <img
+              src="/logos/arcvision.png"
+              alt="ArcVision"
               style={{
                 width: '36px',
                 height: '36px',
-                borderRadius: '8px',
+                borderRadius: '9px',
+                boxShadow: '0 4px 18px rgba(124,92,255,.45)',
               }}
             />
-            <span 
-              style={{ 
-                fontFamily: 'Bebas Neue, sans-serif',
-                fontSize: '1.5rem', 
+            <span
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: '18px',
+                fontWeight: 700,
                 color: 'var(--color-fg)',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
               }}
             >
-              ArcVison
+              ArcVision
             </span>
           </Link>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                style={{
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: location.pathname === link.path ? 'var(--color-accent)' : 'var(--color-fg-muted)',
-                  textDecoration: 'none',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.02em',
-                  background: location.pathname === link.path ? 'var(--color-accent-muted)' : 'transparent',
-                  borderRadius: '8px',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: active ? 'var(--color-fg)' : 'var(--color-fg-muted)',
+                    textDecoration: 'none',
+                    background: active ? 'var(--color-surface-hover)' : 'transparent',
+                    borderRadius: '9px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.color = 'var(--color-fg)';
+                      e.currentTarget.style.background = 'var(--color-surface-elevated)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.color = 'var(--color-fg-muted)';
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div
+            className="desktop-only"
+            aria-label="Season 1"
+            title="Season 1 — points coming soon"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              height: '40px',
+              padding: '0 14px',
+              border: '1px solid rgba(124,92,255,0.35)',
+              borderRadius: '11px',
+              background: 'linear-gradient(180deg, rgba(124,92,255,0.14), rgba(124,92,255,0.05))',
+              fontSize: '13px',
+              color: 'var(--color-fg)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ color: 'var(--color-violet-soft)', display: 'flex' }} aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                <path d="M12 3 3 9l9 12 9-12z" />
+              </svg>
+            </span>
+            Season 1
           </div>
 
           <div className="desktop-only" ref={settingsRef} style={{ position: 'relative' }}>
@@ -230,7 +273,7 @@ function Navbar() {
                 height: '40px',
                 background: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
-                borderRadius: '8px',
+                borderRadius: '11px',
                 cursor: 'pointer',
                 color: 'var(--color-fg-muted)',
                 transition: 'all 0.15s ease',
@@ -394,18 +437,17 @@ function Navbar() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '0.5rem',
-                              padding: '0.5rem 1.5rem',
-                              fontFamily: 'IBM Plex Mono, monospace',
-                              fontSize: '0.875rem',
+                              padding: '0 18px',
+                              fontFamily: 'var(--font-sans)',
+                              fontSize: '14px',
                               fontWeight: '600',
-                              letterSpacing: '0.02em',
-                              textTransform: 'uppercase',
                               border: 'none',
-                              borderRadius: '8px',
+                              borderRadius: '11px',
                               cursor: 'pointer',
                               background: 'var(--color-accent)',
-                              color: 'var(--color-accent-fg)',
-                              minHeight: '40px',
+                              color: '#fff',
+                              height: '40px',
+                              boxShadow: '0 4px 18px rgba(124,92,255,0.35)',
                             }}
                           >
                             Connect Wallet
@@ -422,18 +464,16 @@ function Navbar() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '0.5rem',
-                              padding: '0.5rem 1.5rem',
-                              fontFamily: 'IBM Plex Mono, monospace',
-                              fontSize: '0.875rem',
+                              padding: '0 18px',
+                              fontFamily: 'var(--font-sans)',
+                              fontSize: '14px',
                               fontWeight: '600',
-                              letterSpacing: '0.02em',
-                              textTransform: 'uppercase',
                               border: 'none',
-                              borderRadius: '8px',
+                              borderRadius: '11px',
                               cursor: 'pointer',
                               background: 'var(--color-danger)',
                               color: 'white',
-                              minHeight: '40px',
+                              height: '40px',
                             }}
                           >
                             Wrong Network
@@ -448,35 +488,37 @@ function Navbar() {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              justifyContent: 'center',
                               gap: '8px',
-                              padding: '0.5rem 1.5rem',
-                              fontFamily: 'IBM Plex Mono, monospace',
-                              fontSize: '0.875rem',
-                              fontWeight: '600',
-                              letterSpacing: '0.02em',
-                              textTransform: 'uppercase',
-                              border: '1px solid var(--color-border)',
-                              borderRadius: '8px',
+                              padding: '0 14px',
+                              fontFamily: 'var(--font-sans)',
+                              fontSize: '13px',
+                              fontWeight: '500',
+                              border: '1px solid var(--color-border-subtle)',
+                              borderRadius: '11px',
                               cursor: 'pointer',
-                              background: 'var(--color-surface-elevated)',
+                              background: 'var(--color-surface)',
                               color: 'var(--color-fg)',
-                              minHeight: '40px',
+                              height: '40px',
                             }}
                           >
                             <span
                               style={{
-                                width: '8px',
-                                height: '8px',
+                                width: '7px',
+                                height: '7px',
                                 borderRadius: '50%',
-                                background: 'var(--color-success)',
+                                background: 'var(--color-yes)',
+                                boxShadow: '0 0 0 3px rgba(47,224,160,0.18)',
                               }}
                               aria-hidden="true"
                             />
-                            {account.displayName}
-                            {account.displayBalance
-                              ? ` (${account.displayBalance})`
-                              : ''}
+                            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                              {account.displayName}
+                            </span>
+                            {account.displayBalance && (
+                              <span style={{ color: 'var(--color-fg-muted)', fontFamily: 'var(--font-mono)' }}>
+                                · {account.displayBalance}
+                              </span>
+                            )}
                           </button>
                           {walletMenuOpen && (
                             <WalletDropdown
@@ -530,28 +572,29 @@ function Navbar() {
             padding: '1rem',
           }}
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              onClick={() => setMobileMenuOpen(false)}
-              style={{
-                display: 'block',
-                padding: '0.75rem 1rem',
-                fontSize: '1rem',
-                fontWeight: '600',
-                color: location.pathname === link.path ? 'var(--color-accent)' : 'var(--color-fg)',
-                textDecoration: 'none',
-                textTransform: 'uppercase',
-                letterSpacing: '0.02em',
-                background: location.pathname === link.path ? 'var(--color-accent-muted)' : 'transparent',
-                borderRadius: '8px',
-                marginBottom: '0.5rem',
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const active = location.pathname === link.path;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '0.75rem 1rem',
+                  fontSize: '1rem',
+                  fontWeight: '500',
+                  color: active ? 'var(--color-fg)' : 'var(--color-fg-muted)',
+                  textDecoration: 'none',
+                  background: active ? 'var(--color-surface-hover)' : 'transparent',
+                  borderRadius: '11px',
+                  marginBottom: '0.5rem',
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
 
           {/* Theme toggle in mobile drawer */}
           <div style={{
@@ -641,16 +684,15 @@ function Navbar() {
                         gap: '0.5rem',
                         width: '100%',
                         padding: '0.75rem',
-                        fontFamily: 'IBM Plex Mono, monospace',
-                        fontSize: '0.875rem',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '14px',
                         fontWeight: '600',
-                        letterSpacing: '0.02em',
-                        textTransform: 'uppercase',
                         border: 'none',
-                        borderRadius: '8px',
+                        borderRadius: '11px',
                         cursor: 'pointer',
                         background: 'var(--color-accent)',
-                        color: 'var(--color-accent-fg)',
+                        color: '#fff',
+                        boxShadow: '0 4px 18px rgba(124,92,255,0.35)',
                       }}
                     >
                       Connect Wallet
@@ -669,13 +711,11 @@ function Navbar() {
                         gap: '0.5rem',
                         width: '100%',
                         padding: '0.75rem',
-                        fontFamily: 'IBM Plex Mono, monospace',
-                        fontSize: '0.875rem',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: '14px',
                         fontWeight: '600',
-                        letterSpacing: '0.02em',
-                        textTransform: 'uppercase',
                         border: 'none',
-                        borderRadius: '8px',
+                        borderRadius: '11px',
                         cursor: 'pointer',
                         background: 'var(--color-danger)',
                         color: 'white',
@@ -696,31 +736,34 @@ function Navbar() {
                       gap: '8px',
                       width: '100%',
                       padding: '0.75rem',
-                      fontFamily: 'IBM Plex Mono, monospace',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      letterSpacing: '0.02em',
-                      textTransform: 'uppercase',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      border: '1px solid var(--color-border-subtle)',
+                      borderRadius: '11px',
                       cursor: 'pointer',
-                      background: 'var(--color-surface-elevated)',
+                      background: 'var(--color-surface)',
                       color: 'var(--color-fg)',
                     }}
                   >
                     <span
                       style={{
-                        width: '8px',
-                        height: '8px',
+                        width: '7px',
+                        height: '7px',
                         borderRadius: '50%',
-                        background: 'var(--color-success)',
+                        background: 'var(--color-yes)',
+                        boxShadow: '0 0 0 3px rgba(47,224,160,0.18)',
                       }}
                       aria-hidden="true"
                     />
-                    {account.displayName}
-                    {account.displayBalance
-                      ? ` (${account.displayBalance})`
-                      : ''}
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                      {account.displayName}
+                    </span>
+                    {account.displayBalance && (
+                      <span style={{ color: 'var(--color-fg-muted)', fontFamily: 'var(--font-mono)' }}>
+                        · {account.displayBalance}
+                      </span>
+                    )}
                   </button>
                 );
               }}
