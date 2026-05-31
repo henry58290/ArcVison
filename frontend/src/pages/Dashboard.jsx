@@ -672,12 +672,7 @@ export default function Dashboard() {
           <h2 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.75rem', color: 'var(--color-fg)', letterSpacing: '0.02em' }}>
             MARKETS
           </h2>
-          <div style={{
-            display: 'flex', gap: '0.5rem',
-            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-            paddingBottom: '2px',
-          }}>
+          <div className="mkt-tabs">
             {[
               { id: 'open', label: 'Open', count: markets.filter(m => m.status === 0).length },
               { id: 'resolved', label: 'Resolved', count: markets.filter(m => m.status === 1).length },
@@ -686,54 +681,39 @@ export default function Dashboard() {
             ].map(tab => (
               <button
                 key={tab.id}
+                className={`mkt-tab${activeTab === tab.id ? ' mkt-tab--active' : ''}`}
                 onClick={() => { setActiveTab(tab.id); setSearchParams({ tab: tab.id }); }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '0.4rem 0.75rem',
-                  background: activeTab === tab.id ? 'var(--color-accent-muted)' : 'transparent',
-                  color: activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-fg-muted)',
-                  border: `1px solid ${activeTab === tab.id ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
               >
                 {tab.label}
                 {tab.count > 0 && (
-                  <span style={{
-                    marginLeft: '6px',
-                    padding: '2px 6px',
-                    background: tab.showBadge ? 'var(--color-accent)' : 'var(--color-border)',
-                    color: tab.showBadge ? 'var(--color-accent-fg)' : 'var(--color-fg-muted)',
-                    borderRadius: '10px',
-                    fontSize: '0.625rem',
-                  }}>
+                  <span className={`mkt-tab__ct${tab.showBadge ? ' mkt-tab__ct--alert' : ''}`}>
                     {tab.count}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '0.25rem' }}>
+          <div style={{
+            display: 'flex',
+            gap: '4px',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border-subtle)',
+            borderRadius: '11px',
+            padding: '4px',
+          }}>
             <button
               onClick={() => setViewMode('grid')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.375rem',
-                background: viewMode === 'grid' ? '#22c55e' : 'transparent',
-                color: viewMode === 'grid' ? '#fff' : 'var(--color-fg-muted)',
-                border: `1px solid ${viewMode === 'grid' ? '#22c55e' : 'var(--color-border)'}`,
-                borderRadius: '4px',
+                padding: '7px',
+                background: viewMode === 'grid' ? 'var(--color-surface-hover)' : 'transparent',
+                color: viewMode === 'grid' ? 'var(--color-fg)' : 'var(--color-fg-muted)',
+                border: 'none',
+                borderRadius: '8px',
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
               }}
               title="Grid view"
             >
@@ -750,12 +730,13 @@ export default function Dashboard() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.375rem',
-                background: viewMode === 'list' ? '#22c55e' : 'transparent',
-                color: viewMode === 'list' ? '#fff' : 'var(--color-fg-muted)',
-                border: `1px solid ${viewMode === 'list' ? '#22c55e' : 'var(--color-border)'}`,
-                borderRadius: '4px',
+                padding: '7px',
+                background: viewMode === 'list' ? 'var(--color-surface-hover)' : 'transparent',
+                color: viewMode === 'list' ? 'var(--color-fg)' : 'var(--color-fg-muted)',
+                border: 'none',
+                borderRadius: '8px',
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
               }}
               title="List view"
             >
@@ -790,7 +771,6 @@ export default function Dashboard() {
                   }
                   setSelectedSubcategory(null);
                 }}
-                style={{ '--chip-color': cat.color }}
               >
                 {cat.label}
               </button>
@@ -807,20 +787,8 @@ export default function Dashboard() {
             }}>
               <button
                 onClick={() => setSelectedSubcategory(null)}
-                style={{
-                  padding: '0.25rem 0.55rem',
-                  fontSize: '0.625rem',
-                  fontWeight: '600',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  border: `1px solid ${selectedSubcategory === null ? '#8b5cf6' : 'var(--color-border)'}`,
-                  background: selectedSubcategory === null ? 'rgba(139,92,246,0.15)' : 'transparent',
-                  color: selectedSubcategory === null ? '#8b5cf6' : 'var(--color-fg-muted)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
+                className={`cat-chip${selectedSubcategory === null ? ' cat-chip--active' : ''}`}
+                style={{ padding: '5px 12px', fontSize: '12px' }}
               >
                 All
               </button>
@@ -828,20 +796,8 @@ export default function Dashboard() {
                 <button
                   key={sub}
                   onClick={() => setSelectedSubcategory(selectedSubcategory === sub ? null : sub)}
-                  style={{
-                    padding: '0.25rem 0.55rem',
-                    fontSize: '0.625rem',
-                    fontWeight: '600',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    border: `1px solid ${selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-border)'}`,
-                    background: selectedSubcategory === sub ? 'rgba(139,92,246,0.15)' : 'transparent',
-                    color: selectedSubcategory === sub ? '#8b5cf6' : 'var(--color-fg-muted)',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
+                  className={`cat-chip${selectedSubcategory === sub ? ' cat-chip--active' : ''}`}
+                  style={{ padding: '5px 12px', fontSize: '12px' }}
                 >
                   {sub}
                 </button>
@@ -1129,8 +1085,24 @@ export default function Dashboard() {
         ) : null}
         
         {activeTab !== 'cancelled' && activeTab !== 'claims' && filteredMarkets.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-fg-dim)' }}>
-            No {activeTab} markets available. {isOwner && activeTab === 'open' && "Create one to get started!"}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '72px 20px',
+            color: 'var(--color-fg-dim)',
+            textAlign: 'center',
+          }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+              <path d="M13 3 4 14h6l-1 7 9-11h-6z" />
+            </svg>
+            <p style={{ fontSize: '14px', margin: 0 }}>
+              No {activeTab} markets {selectedCategory !== null ? 'in this category ' : ''}yet.
+            </p>
+            {isOwner && activeTab === 'open' && (
+              <p style={{ fontSize: '13px', margin: 0 }}>Create one to get started.</p>
+            )}
           </div>
         )}
         

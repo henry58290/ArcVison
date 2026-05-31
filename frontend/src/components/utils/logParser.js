@@ -37,17 +37,25 @@ function decodePositionPlacedLog(log) {
     if (data.length < 386) return null;
 
     // Offsets (hex chars after "0x"):
-    //   side     [2..66]    — bool, not needed for chart
-    //   amount   [66..130]  — not needed for chart
+    //   side     [2..66]    — bool (decoded for the activity feed)
+    //   amount   [66..130]  — wei staked (decoded for the activity feed)
     //   yesOdds  [130..194] — contract-computed, scaled ×10000, includes virtual liquidity
     //   noOdds   [194..258] — contract-computed, scaled ×10000
-    //   totalYes [258..322] — raw pool (wei), not needed for chart
-    //   totalNo  [322..386] — raw pool (wei), not needed for chart
+    //   totalYes [258..322] — raw pool (wei), not needed
+    //   totalNo  [322..386] — raw pool (wei), not needed
+    const side    = BigInt('0x' + data.slice(2, 66)) !== 0n; // true = Yes
+    const amount  = BigInt('0x' + data.slice(66, 130)).toString(); // wei, string for cache safety
     const yesOdds = Number(BigInt('0x' + data.slice(130, 194)));
     const noOdds  = Number(BigInt('0x' + data.slice(194, 258)));
 
+    // topics[2] = indexed user address (right-aligned within the 32-byte word)
+    const user = topics[2] ? '0x' + topics[2].slice(-40) : null;
+
     return {
       marketId,
+      user,
+      side,
+      amount,
       yesOdds,
       noOdds,
       blockNumber: parseInt(log.blockNumber, 16),
@@ -178,4 +186,31 @@ export function calculateProbabilityTimeSeries(logs, marketId) {
     time: log.timestamp,
     value: log.yesOdds / 100, // yesOdds scaled ×10000 → /100 = percentage
   }));
+}
+
+/**
+ * Build a recent-trades activity feed from the same PositionPlaced logs the
+ * chart already uses — no extra network calls.
+ *
+ * Returns newest-first. Older cache entries written before the decoder tracked
+ * user/side/amount are skipped (they self-heal on the next full refetch, which
+ * happens after any trade clears the cache).
+ *
+ * @returns {{user:string, side:boolean, amount:string, time:number, txHash:string}[]}
+ */
+export function calculateActivity(logs, marketId, limit = 12) {
+  return logs
+    .filter(log => log.marketId === Number(marketId) && log.user)
+    .sort((a, b) => {
+      if (a.blockNumber !== b.blockNumber) return b.blockNumber - a.blockNumber;
+      return b.transactionHash.localeCompare(a.transactionHash);
+    })
+    .slice(0, limit)
+    .map(log => ({
+      user: log.user,
+      side: log.side,       // true = Yes
+      amount: log.amount,   // wei (string)
+      time: log.timestamp,
+      txHash: log.transactionHash,
+    }));
 }

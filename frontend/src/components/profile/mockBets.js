@@ -93,23 +93,105 @@ export function appendBet(bet) {
   return next;
 }
 
-/** Aggregate stats derived from a bets array. */
+/**
+ * Aggregate stats derived from a bets array.
+ *
+ * Existing fields (totalProfit, totalLoss, netPnl, activeCount, resolvedCount)
+ * are unchanged. Extended fields power the profile metric tiles:
+ *   openPnl     — unrealized P&L summed across Active positions
+ *   realizedPnl — alias of netPnl (resolved only)
+ *   roiPct      — realized P&L as % of resolved wager
+ *   winCount/lossCount/winRate — resolved win/loss tally
+ *   volume      — total USDC wagered (all bets)
+ *   marketsCount — distinct markets traded
+ */
 export function computeStats(bets) {
   const list = bets || loadBets();
   let totalProfit = 0;
   let totalLoss = 0;
+  let resolvedWagered = 0;
+  let openPnl = 0;
+  let volume = 0;
+  let winCount = 0;
+  let lossCount = 0;
+
   for (const b of list) {
-    if (b.status !== 'Resolved') continue;
-    if (b.pnl > 0) totalProfit += b.pnl;
-    else totalLoss += Math.abs(b.pnl);
+    volume += b.wagered || 0;
+    if (b.status === 'Active') {
+      openPnl += b.pnl || 0;
+      continue;
+    }
+    if (b.status === 'Resolved') {
+      resolvedWagered += b.wagered || 0;
+      if (b.pnl > 0) totalProfit += b.pnl;
+      else totalLoss += Math.abs(b.pnl);
+      if (b.outcome === 'Won') winCount += 1;
+      else if (b.outcome === 'Lost') lossCount += 1;
+    }
   }
+
+  const netPnl = totalProfit - totalLoss;
+  const activeCount = list.filter((b) => b.status === 'Active').length;
+  const resolvedCount = list.filter((b) => b.status === 'Resolved').length;
+
   return {
     totalProfit,
     totalLoss,
-    netPnl: totalProfit - totalLoss,
-    activeCount: list.filter((b) => b.status === 'Active').length,
-    resolvedCount: list.filter((b) => b.status === 'Resolved').length,
+    netPnl,
+    activeCount,
+    resolvedCount,
+    openPnl,
+    realizedPnl: netPnl,
+    roiPct: resolvedWagered > 0 ? (netPnl / resolvedWagered) * 100 : 0,
+    winCount,
+    lossCount,
+    winRate: resolvedCount > 0 ? (winCount / resolvedCount) * 100 : 0,
+    volume,
+    marketsCount: new Set(list.map((b) => b.market)).size,
   };
+}
+
+/**
+ * Cumulative realized-P&L series for the profile chart.
+ * Walks resolved bets in date order, summing pnl. Returns an array of numbers
+ * (USDC) including a leading baseline so a line always has ≥2 anchors.
+ *
+ * @param {Bet[]} bets
+ * @param {'7d'|'30d'|'all'} range
+ * @returns {number[]}
+ */
+export function cumulativePnl(bets, range = 'all') {
+  const list = bets || loadBets();
+  const resolved = list
+    .filter((b) => b.status === 'Resolved' && b.date)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  let running = 0;
+  const full = resolved.map((b) => {
+    running += b.pnl;
+    return { date: b.date, value: running };
+  });
+
+  let points = full;
+  let startValue = 0;
+
+  if (range === '7d' || range === '30d') {
+    const days = range === '7d' ? 7 : 30;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const idx = full.findIndex((p) => p.date >= cutoffStr);
+    if (idx === -1) {
+      const last = full.length ? full[full.length - 1].value : 0;
+      return [last, last];
+    }
+    points = full.slice(idx);
+    startValue = idx > 0 ? full[idx - 1].value : 0;
+  }
+
+  const values = [startValue, ...points.map((p) => p.value)];
+  if (values.length < 2) values.push(values[0] ?? 0);
+  return values;
 }
 
 /** @deprecated kept for backwards compat — prefer DEFAULT_BETS / loadBets() */

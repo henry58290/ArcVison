@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
-   MarketCard — Premium Prediction Market Card
-   Inspired by TCG card framing: header, hero, body, footer zones
+   MarketCard — ArcVision market card
+   Zones: thumbnail (gradient + glyph / image), body, footer
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Card Shell ── */
@@ -12,301 +12,242 @@
   min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-2xl);
   overflow: hidden;
   cursor: pointer;
   transition:
     transform var(--transition-normal),
     box-shadow var(--transition-normal),
     border-color var(--transition-normal);
-  box-shadow:
-    0 1px 3px var(--color-shadow),
-    0 0 0 0 transparent;
 }
 
 .mcard:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: var(--color-border);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 40px var(--color-shadow);
 }
 
 .mcard:active {
   transform: translateY(-1px);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
-.mcard--resolved {
-  opacity: 0.85;
-}
+.mcard--resolved { opacity: 0.88; }
+.mcard--cancelled { opacity: 0.72; }
 
-.mcard--cancelled {
-  opacity: 0.7;
-}
-
-/* ── Accent Edge (top border highlight) ── */
-.mcard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--mcard-accent, var(--color-accent)), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-}
-
-.mcard:hover::before {
-  opacity: 1;
-}
-
-.mcard--open { --mcard-accent: var(--color-success); }
-.mcard--resolved { --mcard-accent: #3b82f6; }
-.mcard--cancelled { --mcard-accent: var(--color-danger); }
-
-/* ── Header Zone ── */
-.mcard__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px 8px;
-  gap: 8px;
-}
-
-.mcard__badges {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.mcard__badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  line-height: 1.4;
-}
-
-.mcard__badge--status {
-  color: #fff;
-}
-
-.mcard__badge--open { background: #166534; }
-.mcard__badge--resolved { background: #1e40af; }
-.mcard__badge--cancelled { background: #991b1b; }
-
-.mcard__badge--category {
-  border: 1px solid currentColor;
-  opacity: 0.9;
-}
-
-.mcard__time {
-  font-size: 0.6875rem;
-  color: var(--color-fg-dim);
-  font-weight: 500;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mcard__time svg {
-  opacity: 0.6;
-}
-
-/* ── Hero Zone (Image) ── */
-.mcard__hero {
+/* ── Thumbnail Zone ── */
+.mcard__thumb {
   position: relative;
-  margin: 0 12px;
-  border-radius: var(--radius-md);
+  height: 128px;
+  display: flex;
+  align-items: flex-end;
+  padding: 14px;
   overflow: hidden;
-  aspect-ratio: 16 / 9;
   background: var(--color-bg-soft);
 }
 
-.mcard__hero img {
+.mcard__thumb-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform var(--transition-slow);
 }
 
-.mcard:hover .mcard__hero img {
-  transform: scale(1.03);
+.mcard:hover .mcard__thumb-img {
+  transform: scale(1.04);
 }
 
-/* Gradient overlay on image for text readability */
-.mcard__hero::after {
-  content: '';
+.mcard__glyph {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40%;
-  background: linear-gradient(to top, rgba(0,0,0,0.4), transparent);
+  right: -6px;
+  top: -14px;
+  opacity: 0.18;
   pointer-events: none;
+}
+
+.mcard__thumb-tags {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 2;
+}
+
+.mcard__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  white-space: nowrap;
+  line-height: 1.3;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.mcard__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #ECECF2;
+  background: rgba(8, 8, 12, 0.55);
+  border-radius: 8px;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.mcard__time svg {
+  width: 13px;
+  height: 13px;
+  color: rgba(236, 236, 242, 0.6);
+  flex-shrink: 0;
 }
 
 /* ── Body Zone ── */
 .mcard__body {
-  padding: 12px 16px 8px;
+  padding: 18px;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+.mcard__qrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--color-fg-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mcard__region {
+  padding: 3px 8px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  color: var(--color-cyan);
+  white-space: nowrap;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mcard__title {
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 16.5px;
+  font-weight: 500;
   color: var(--color-fg);
-  line-height: 1.4;
-  margin: 0 0 6px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.34;
+  letter-spacing: -0.01em;
+  margin: 0;
+  min-height: 44px;
 }
 
-.mcard__subcategory {
-  display: inline-block;
-  padding: 2px 8px;
-  background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border-radius: var(--radius-sm);
-  margin-bottom: 12px;
-  width: fit-content;
-}
-
-/* ── Probability Gauge ── */
-.mcard__gauge {
-  margin-bottom: 12px;
-}
-
-.mcard__gauge-bar {
+/* ── Probability ── */
+.mcard__prob {
   display: flex;
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 6px;
-  background: var(--color-bg-soft);
+  flex-direction: column;
+  gap: 9px;
 }
 
-.mcard__gauge-fill--yes {
-  background: linear-gradient(90deg, #16a34a, #22c55e);
-  border-radius: 3px 0 0 3px;
-  transition: width var(--transition-slow);
-}
-
-.mcard__gauge-fill--no {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-  border-radius: 0 3px 3px 0;
-  transition: width var(--transition-slow);
-}
-
-.mcard__gauge-labels {
+.mcard__prob-top {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.mcard__gauge-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-}
+.mcard__prob-yes { color: var(--color-yes); font-family: var(--font-mono); }
+.mcard__prob-no { color: var(--color-no); font-family: var(--font-mono); }
 
-.mcard__gauge-label--yes { color: var(--color-success); }
-.mcard__gauge-label--no { color: var(--color-danger); }
-
-/* ── Action Buttons (YES/NO) ── */
-.mcard__actions {
+.mcard__bar {
+  height: 7px;
+  border-radius: 99px;
+  background: var(--color-no-dim);
+  overflow: hidden;
   display: flex;
-  gap: 8px;
-  margin-top: auto;
 }
 
-.mcard__btn {
-  flex: 1;
+.mcard__bar-fill {
+  background: var(--color-yes); /* fallback for browsers without color-mix() */
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-yes) 78%, #000), var(--color-yes));
+  border-radius: 99px 0 0 99px;
+  transition: width var(--transition-slow);
+}
+
+/* ── Sparkline ── */
+.mcard__spark {
+  height: 34px;
+  margin: -2px 0;
+}
+
+.mcard__spark-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Price Buttons (YES/NO) ── */
+.mcard__prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mcard__bet {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.8125rem;
-  font-weight: 700;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border: 1px solid;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
-  position: relative;
-  overflow: hidden;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.mcard__btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent);
-  pointer-events: none;
+.mcard__bet-lbl { letter-spacing: 0.04em; }
+.mcard__bet-px { font-family: var(--font-mono); font-size: 15px; }
+
+.mcard__bet--yes {
+  background: var(--color-yes-dim);
+  border-color: var(--color-yes-line);
+  color: var(--color-yes);
 }
 
-.mcard__btn:hover {
-  transform: translateY(-1px);
+.mcard__bet--yes:hover {
+  background: var(--color-yes-line); /* fallback for browsers without color-mix() */
+  background: color-mix(in srgb, var(--color-yes) 20%, transparent);
 }
 
-.mcard__btn:active {
-  transform: translateY(0);
+.mcard__bet--no {
+  background: var(--color-no-dim);
+  border-color: var(--color-no-line);
+  color: var(--color-no);
 }
 
-.mcard__btn--yes {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--color-success);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.mcard__btn--yes:hover {
-  background: rgba(34, 197, 94, 0.2);
-  border-color: rgba(34, 197, 94, 0.35);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
-}
-
-.mcard__btn--no {
-  background: rgba(239, 68, 68, 0.12);
-  color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.mcard__btn--no:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.35);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
-}
-
-.mcard__btn-price {
-  font-size: 0.75rem;
-  opacity: 0.8;
-  font-weight: 500;
+.mcard__bet--no:hover {
+  background: var(--color-no-line); /* fallback for browsers without color-mix() */
+  background: color-mix(in srgb, var(--color-no) 20%, transparent);
 }
 
 /* ── Resolution Banner ── */
 .mcard__resolution {
-  margin: 0 16px 8px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   text-align: center;
@@ -317,31 +258,30 @@
 }
 
 .mcard__resolution--yes {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: var(--color-yes-dim);
+  color: var(--color-yes);
+  border: 1px solid var(--color-yes-line);
 }
 
 .mcard__resolution--no {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--color-no-dim);
+  color: var(--color-no);
+  border: 1px solid var(--color-no-line);
 }
 
 /* ── Cancelled Banner ── */
 .mcard__cancelled-info {
-  margin: 0 16px 8px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  background: var(--color-danger-bg);
-  border: 1px solid rgba(239, 68, 68, 0.15);
+  background: var(--color-no-dim);
+  border: 1px solid var(--color-no-line);
   text-align: center;
 }
 
 .mcard__cancelled-label {
   font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--color-danger);
+  color: var(--color-no);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
@@ -358,75 +298,85 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 12px;
+  gap: 10px;
+  padding: 14px 18px;
   border-top: 1px solid var(--color-border-subtle);
   margin-top: auto;
 }
 
-.mcard__meta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.mcard__meta-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.6875rem;
-  color: var(--color-fg-dim);
-  font-weight: 500;
-}
-
-.mcard__meta-item svg {
-  opacity: 0.7;
-  flex-shrink: 0;
-}
-
-/* Trader avatars stack */
 .mcard__traders {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+  min-width: 0;
 }
 
-.mcard__avatar-stack {
-  display: flex;
-}
+.mcard__avatar-stack { display: flex; flex-shrink: 0; }
 
 .mcard__avatar {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: 2px solid var(--color-surface);
+}
+
+.mcard__avatar:not(:first-child) { margin-left: -8px; }
+
+.mcard__avatar--1 { background: linear-gradient(135deg, #7C5CFF, #27D5E5); }
+.mcard__avatar--2 { background: linear-gradient(135deg, #FF6B7A, #FFB36B); }
+.mcard__avatar--3 { background: linear-gradient(135deg, #2FE0A0, #27D5E5); }
+
+.mcard__foot-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.5rem;
-  font-weight: 700;
-  color: #fff;
+  gap: 14px;
+  flex-shrink: 0;
 }
 
-.mcard__avatar:not(:first-child) {
-  margin-left: -6px;
+.mcard__vol {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
 }
 
-.mcard__avatar--1 { background: #6366f1; }
-.mcard__avatar--2 { background: #06b6d4; }
-.mcard__avatar--3 { background: #f59e0b; }
+.mcard__vol svg { opacity: 0.7; flex-shrink: 0; }
+
+.mcard__earn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-accent);
+  background: rgba(124, 92, 255, 0.12);
+  border: 1px solid rgba(124, 92, 255, 0.28);
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.dark .mcard__earn { color: var(--color-violet-soft); }
+
+.mcard__earn svg { flex-shrink: 0; }
 
 /* ── Admin Controls ── */
 .mcard__admin {
   display: flex;
   gap: 6px;
-  padding: 8px 16px 12px;
+  padding: 10px 18px 14px;
   border-top: 1px solid var(--color-border-subtle);
 }
 
 .mcard__admin-btn {
   flex: 1;
-  padding: 7px 8px;
-  font-size: 0.625rem;
+  padding: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -434,30 +384,17 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   color: #fff;
-  transition:
-    opacity var(--transition-fast),
-    transform var(--transition-fast);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .mcard__admin-btn:hover {
-  opacity: 0.85;
+  opacity: 0.88;
   transform: translateY(-1px);
 }
 
-.mcard__admin-btn--yes { background: var(--color-success); }
-.mcard__admin-btn--no { background: var(--color-danger); }
+.mcard__admin-btn--yes { background: var(--color-yes); color: #07130d; }
+.mcard__admin-btn--no { background: var(--color-no); color: #1a0708; }
 .mcard__admin-btn--cancel { background: var(--color-fg-dim); }
-
-/* ── Responsive ── */
-@container market-main (max-width: 679px) {
-  .mcard__hero {
-    aspect-ratio: 2 / 1;
-  }
-
-  .mcard__title {
-    font-size: 0.875rem;
-  }
-}
 
 /* ── Focus / Accessibility ── */
 .mcard:focus-visible {
@@ -466,33 +403,27 @@
 }
 
 /* ── Skeleton Loading State ── */
-.mcard--loading {
-  pointer-events: none;
-}
+.mcard--loading { pointer-events: none; }
 
-.mcard--loading .mcard__hero,
+.mcard--loading .mcard__thumb,
 .mcard--loading .mcard__title,
-.mcard--loading .mcard__gauge-bar,
-.mcard--loading .mcard__btn {
+.mcard--loading .mcard__qrow,
+.mcard--loading .mcard__bar,
+.mcard--loading .mcard__bet,
+.mcard--loading .mcard__sk-line {
   background: var(--color-bg-soft);
+  border-radius: var(--radius-sm);
   animation: mcard-shimmer 1.5s ease-in-out infinite;
 }
+
+.mcard--loading .mcard__bet { border: none; }
 
 @keyframes mcard-shimmer {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
 
-/* ── Pulse animation for live markets ── */
-.mcard__live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-success);
-  animation: mcard-pulse 2s ease-in-out infinite;
-}
-
-@keyframes mcard-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+/* ── Responsive ── */
+@container market-main (max-width: 679px) {
+  .mcard__title { font-size: 15px; }
 }
