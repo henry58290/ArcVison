@@ -1,43 +1,77 @@
-function fmt(value) {
-  const sign = value < 0 ? '-' : '';
-  return `${sign}$${Math.abs(value).toLocaleString(undefined, {
+import './profile.css';
+
+/** Signed USDC, e.g. +$73.20 / −$380.00 */
+function signedUsd(v) {
+  const sign = v < 0 ? '−' : '+';
+  return `${sign}$${Math.abs(v).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 }
 
-function StatCard({ label, value, tone = 'neutral' }) {
-  const valueColor = {
-    profit: 'text-emerald-500',
-    loss: 'text-rose-500',
-    neutral: 'text-zinc-100',
-  }[tone];
+/** Unsigned whole-dollar volume, e.g. $1,075 */
+function plainUsd(v) {
+  return `$${Math.round(v).toLocaleString()}`;
+}
 
+function Tile({ label, value, tone = 'neutral', children }) {
+  const toneClass = tone === 'profit' ? ' pos' : tone === 'loss' ? ' neg' : '';
   return (
-    <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800 p-5">
-      <div className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium mb-3">
-        {label}
-      </div>
-      <div className={`text-2xl font-semibold tabular-nums ${valueColor}`}>
-        {fmt(value)}
-      </div>
-      <div className="text-[11px] text-zinc-600 font-medium mt-1.5 tracking-wide">
-        USDC
-      </div>
+    <div className="pf-tile">
+      <div className="pf-tile__label">{label}</div>
+      <div className={`pf-tile__value${toneClass}`}>{value}</div>
+      <div className="pf-tile__delta">{children}</div>
     </div>
   );
 }
 
+/**
+ * StatsCards — four metric tiles, all derived from computeStats(bets):
+ * Net P&L (realized + ROI), Open P&L (unrealized), Win rate (W/L), Volume.
+ */
 export default function StatsCards({ stats }) {
+  const {
+    netPnl = 0,
+    roiPct = 0,
+    openPnl = 0,
+    activeCount = 0,
+    winRate = 0,
+    winCount = 0,
+    lossCount = 0,
+    volume = 0,
+    marketsCount = 0,
+  } = stats || {};
+
+  const roiSign = roiPct >= 0 ? '+' : '−';
+
   return (
-    <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <StatCard label="Total Profit" value={stats.totalProfit} tone="profit" />
-      <StatCard label="Total Loss" value={stats.totalLoss} tone="loss" />
-      <StatCard
-        label="Net PNL"
-        value={stats.netPnl}
-        tone={stats.netPnl >= 0 ? 'profit' : 'loss'}
-      />
+    <section className="pf-metrics">
+      <Tile
+        label="Net P&L · realized"
+        value={signedUsd(netPnl)}
+        tone={netPnl >= 0 ? 'profit' : 'loss'}
+      >
+        {roiSign}{Math.abs(roiPct).toFixed(1)}% ROI
+      </Tile>
+
+      <Tile
+        label="Open P&L · unrealized"
+        value={signedUsd(openPnl)}
+        tone={openPnl >= 0 ? 'profit' : 'loss'}
+      >
+        across {activeCount} active position{activeCount === 1 ? '' : 's'}
+      </Tile>
+
+      <Tile label="Win rate" value={`${Math.round(winRate)}%`}>
+        <span className="pf-wl">
+          <span className="w">{winCount}W</span>·<span className="l">{lossCount}L</span>
+        </span>
+        resolved
+      </Tile>
+
+      <Tile label="Volume traded" value={plainUsd(volume)}>
+        {marketsCount} market{marketsCount === 1 ? '' : 's'} · all-time
+      </Tile>
     </section>
   );
 }

@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import StatsCards from '../components/profile/StatsCards';
+import PnlChart from '../components/profile/PnlChart';
 import TradeHistory from '../components/profile/TradeHistory';
+import '../components/profile/profile.css';
 import {
   BETS_STORAGE_KEY,
   loadBets,
@@ -80,16 +82,21 @@ export default function Profile() {
 
   const stats = computeStats(bets);
 
+  // Real "joined" label derived from the earliest bet date, if any.
+  const joined = useMemo(() => {
+    const dates = bets.map((b) => b.date).filter(Boolean).sort();
+    if (!dates.length) return undefined;
+    const d = new Date(`${dates[0]}T00:00:00`);
+    if (Number.isNaN(d.getTime())) return undefined;
+    return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }, [bets]);
+
   return (
-    <main className="min-h-screen font-sans antialiased bg-zinc-950 text-zinc-100 pt-24 pb-16">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col gap-5">
-        <div className="mb-1">
-          <div className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">
-            Account
-          </div>
-          <h1 className="mt-1 text-xl font-semibold text-zinc-100">
-            Profile
-          </h1>
+    <main className="pf-page">
+      <div className="pf-wrap">
+        <div>
+          <div className="pf-eyebrow">Account</div>
+          <h1 className="pf-h1">Profile</h1>
         </div>
 
         <ProfileHeader
@@ -100,8 +107,10 @@ export default function Profile() {
           setAvatar={setAvatar}
           twitterConnected={twitterConnected}
           setTwitterConnected={setTwitterConnected}
+          joined={joined}
         />
         <StatsCards stats={stats} />
+        <PnlChart bets={bets} since={joined} />
         <TradeHistory bets={bets} />
       </div>
     </main>

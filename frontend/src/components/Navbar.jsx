@@ -17,63 +17,97 @@ function WalletDropdown({ account, onClose }) {
     } catch { /* ignore */ }
   };
 
+  const itemBase = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '11px',
+    width: '100%',
+    padding: '11px 12px',
+    borderRadius: '11px',
+    fontSize: '14px',
+    fontWeight: 500,
+    fontFamily: 'var(--font-sans)',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    textAlign: 'left',
+    transition: 'background 0.15s ease',
+  };
+  const onHover = (e) => { e.currentTarget.style.background = 'var(--color-surface-elevated)'; };
+  const offHover = (e) => { e.currentTarget.style.background = 'transparent'; };
+
   return (
     <div
-      className="absolute right-0 mt-2 w-64 rounded-2xl bg-surface border border-border p-2 z-50 shadow-2xl"
-      style={{ animation: 'scaleIn 0.15s ease' }}
+      style={{
+        position: 'absolute',
+        right: 0,
+        top: 'calc(100% + 8px)',
+        width: '264px',
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '16px',
+        padding: '8px',
+        boxShadow: '0 24px 60px var(--color-shadow)',
+        zIndex: 50,
+        animation: 'scaleIn 0.15s ease',
+      }}
     >
-      <div className="px-3 py-3 border-b border-border-subtle">
-        <div className="text-[11px] uppercase tracking-wider text-fg-dim font-semibold mb-1">
+      {/* Balance header */}
+      <div style={{ padding: '12px 12px 10px' }}>
+        <div style={{ fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-fg-dim)' }}>
           Balance
         </div>
-        <div className="text-lg font-bold text-fg">
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '21px', fontWeight: 600, color: 'var(--color-fg)', marginTop: '5px' }}>
           {account.displayBalance || '0.00'}
         </div>
-        <div className="text-xs text-fg-dim font-mono mt-1">
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-fg-muted)', marginTop: '3px' }}>
           {account.displayName}
         </div>
       </div>
 
+      <div style={{ height: '1px', background: 'var(--color-border-subtle)', margin: '6px 4px' }} />
+
       <button
         onClick={() => { onClose(); navigate('/profile'); }}
-        className="w-full flex items-center gap-3 px-3 py-2.5 mt-1 rounded-lg text-sm font-medium text-fg hover:bg-surface-elevated transition text-left"
+        style={{ ...itemBase, color: 'var(--color-fg)' }}
+        onMouseEnter={onHover}
+        onMouseLeave={offHover}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-fg-muted)' }}>
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
-        My Profile
+        My profile
       </button>
 
       <button
         onClick={copy}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-fg hover:bg-surface-elevated transition text-left"
+        style={{ ...itemBase, color: 'var(--color-fg)' }}
+        onMouseEnter={onHover}
+        onMouseLeave={offHover}
       >
         {copied ? (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Copied
-          </>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: 'var(--color-yes)' }}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         ) : (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-            Copy Address
-          </>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-fg-muted)' }}>
+            <rect x="9" y="9" width="13" height="13" rx="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
         )}
+        {copied ? 'Copied' : 'Copy address'}
       </button>
 
-      <div className="h-px bg-border-subtle my-1" />
+      <div style={{ height: '1px', background: 'var(--color-border-subtle)', margin: '6px 4px' }} />
 
       <button
         onClick={() => { onClose(); disconnect(); }}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-danger hover:bg-danger-bg transition text-left"
+        style={{ ...itemBase, color: 'var(--color-no)' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-no-dim)'; }}
+        onMouseLeave={offHover}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-no)' }}>
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
           <polyline points="16 17 21 12 16 7" />
           <line x1="21" y1="12" x2="9" y2="12" />

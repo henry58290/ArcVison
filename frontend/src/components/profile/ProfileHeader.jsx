@@ -1,10 +1,20 @@
 import { useRef, useState } from 'react';
+import './profile.css';
 
 function truncate(addr) {
   if (!addr) return '';
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
+/**
+ * ProfileHeader — identity card + season/rank card.
+ *
+ * Identity (avatar upload, username edit, copy address, Connect X) is fully
+ * wired to the existing localStorage-backed handlers.
+ *
+ * The rank card is a PLACEHOLDER — ArcVision has no points/rank system yet.
+ * To wire it, pass a `rank` prop: { tier, points, rank, total, nextTier, progressPct }.
+ */
 export default function ProfileHeader({
   address,
   username,
@@ -13,6 +23,8 @@ export default function ProfileHeader({
   setAvatar,
   twitterConnected,
   setTwitterConnected,
+  joined,
+  rank,
 }) {
   const [draftName, setDraftName] = useState(username);
   const [editing, setEditing] = useState(false);
@@ -42,106 +54,131 @@ export default function ProfileHeader({
     } catch { /* ignore */ }
   };
 
+  const hasPoints = rank?.points != null;
+  const progressPct = Math.max(0, Math.min(100, rank?.progressPct ?? 0));
+
   return (
-    <section className="rounded-2xl bg-zinc-900/50 border border-zinc-800 p-6 sm:p-7">
-      <div className="flex flex-col sm:flex-row gap-6 sm:gap-7 items-start sm:items-center">
-        {/* Avatar — plain circle, no rings/halos */}
-        <div className="shrink-0 flex flex-col items-center gap-2">
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-            {avatar ? (
-              <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl font-semibold text-zinc-500">
-                {(username || 'A').slice(0, 1).toUpperCase()}
-              </span>
-            )}
-          </div>
-          <button
+    <section className="pf-card">
+      <div className="pf-card__glow" />
+      <div className="pf-card__inner">
+        {/* Avatar */}
+        <div className="pf-avatar-col">
+          <div
+            className="pf-avatar"
             onClick={() => fileInputRef.current?.click()}
-            className="text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors font-medium"
+            title="Change avatar"
           >
+            {avatar
+              ? <img src={avatar} alt="avatar" />
+              : (username || 'A').slice(0, 1).toUpperCase()}
+          </div>
+          <button className="pf-mini" onClick={() => fileInputRef.current?.click()}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M14 6l4 4" />
+            </svg>
             Edit
           </button>
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            className="hidden"
+            style={{ display: 'none' }}
             onChange={handleAvatar}
           />
         </div>
 
         {/* Identity */}
-        <div className="flex-1 w-full min-w-0">
-          {/* Username */}
-          <div className="flex items-center gap-2 mb-1.5">
+        <div className="pf-identity">
+          <div className="pf-name-row">
             {editing ? (
-              <div className="flex items-center gap-2 w-full">
+              <>
                 <input
+                  className="pf-name-input"
                   value={draftName}
                   onChange={(e) => setDraftName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && saveName()}
                   autoFocus
                   maxLength={32}
-                  className="text-xl font-semibold bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-md px-3 py-1.5 outline-none focus:border-zinc-500 transition-colors"
                   placeholder="Username"
                 />
+                <button className="pf-name-save" onClick={saveName}>Save</button>
                 <button
-                  onClick={saveName}
-                  className="px-3 py-1.5 text-sm font-medium text-zinc-100 bg-zinc-800 border border-zinc-700 rounded-md hover:bg-zinc-700 transition-colors"
-                >
-                  Save
-                </button>
-                <button
+                  className="pf-name-cancel"
                   onClick={() => { setDraftName(username); setEditing(false); }}
-                  className="px-3 py-1.5 text-sm font-medium text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
                   Cancel
                 </button>
-              </div>
+              </>
             ) : (
               <>
-                <h2 className="text-xl sm:text-2xl font-semibold text-zinc-100 truncate">
-                  {username || 'Anonymous'}
-                </h2>
-                <button
-                  onClick={() => setEditing(true)}
-                  className="text-[11px] uppercase tracking-wider text-zinc-500 hover:text-zinc-300 transition-colors font-medium ml-1"
-                >
+                <h2 className="pf-name">{username || 'Anonymous'}</h2>
+                <button className="pf-mini" onClick={() => setEditing(true)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M14 6l4 4" />
+                  </svg>
                   Edit
                 </button>
               </>
             )}
           </div>
 
-          {/* Address */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-zinc-500">{truncate(address)}</span>
-            <button
-              onClick={copyAddress}
-              className="text-[11px] uppercase tracking-wider font-medium text-zinc-600 hover:text-zinc-300 transition-colors"
-            >
+          <div className="pf-addr">
+            {truncate(address)}
+            <button className="pf-mini" onClick={copyAddress}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                <rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h8" />
+              </svg>
               {copied ? 'Copied' : 'Copy'}
             </button>
           </div>
 
-          {/* Connect X — sleek secondary */}
-          <button
-            onClick={() => setTwitterConnected(!twitterConnected)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-sm font-medium bg-transparent border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-            </svg>
-            {twitterConnected ? (
-              <>
-                <span>X Connected</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              </>
-            ) : (
-              <span>Connect X</span>
+          <div className="pf-actions">
+            <button
+              className="pf-connectx"
+              onClick={() => setTwitterConnected(!twitterConnected)}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              {twitterConnected ? (
+                <>X Connected<span className="pf-connectx__dot" /></>
+              ) : (
+                'Connect X'
+              )}
+            </button>
+            {joined && (
+              <span className="pf-joined">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="5" width="16" height="16" rx="2" /><path d="M4 9h16M8 3v4M16 3v4" />
+                </svg>
+                Joined {joined}
+              </span>
             )}
-          </button>
+          </div>
+        </div>
+
+        {/* Rank card — placeholder until a points system exists */}
+        <div className="pf-rank">
+          <span className="pf-tier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+              <path d="M12 3 3 9l9 12 9-12z" />
+            </svg>
+            {rank?.tier || 'Season 1'}
+          </span>
+          <div className="pf-rank__pts">
+            {hasPoints ? rank.points.toLocaleString() : '—'} <span>pts</span>
+          </div>
+          <div className="pf-rank__rank">
+            {hasPoints && rank.rank != null
+              ? `Rank #${rank.rank.toLocaleString()}${rank.total ? ` of ${rank.total.toLocaleString()}` : ''}`
+              : 'Ranking coming soon'}
+          </div>
+          <div className="pf-pbar"><i style={{ width: `${progressPct}%` }} /></div>
+          <div className="pf-rank__next">
+            {hasPoints && rank.nextTier
+              ? `${rank.toNext ?? ''} pts to ${rank.nextTier}`
+              : 'Earn points by trading — launching soon'}
+          </div>
         </div>
       </div>
     </section>
