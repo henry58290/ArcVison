@@ -207,29 +207,11 @@ function Navbar() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '11px', textDecoration: 'none' }}>
-            <img
-              src="/logos/arcvision.png"
-              alt="ArcVision"
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '9px',
-                boxShadow: '0 4px 18px rgba(124,92,255,.45)',
-              }}
-            />
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: '18px',
-                fontWeight: 700,
-                color: 'var(--color-fg)',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-              }}
-            >
-              ArcVision
+          <Link to="/" className="navbrand" style={{ display: 'flex', alignItems: 'center', gap: '11px', textDecoration: 'none' }}>
+            <span className="navbrand__logo">
+              <img src="/logos/arcvision.png" alt="ArcVision" className="navbrand__mark" />
             </span>
+            <span className="navbrand__word">ArcVision</span>
           </Link>
         </div>
 
@@ -828,6 +810,87 @@ function Navbar() {
           .mobile-menu {
             display: block !important;
           }
+        }
+
+        /* ── Brand hover: logo spin + diagonal shine + glow, wordmark shimmer ── */
+        .navbrand__logo {
+          position: relative;
+          width: 36px;
+          height: 36px;
+          border-radius: 9px;
+          display: grid;
+          place-items: center;
+          box-shadow: 0 4px 18px rgba(124, 92, 255, 0.45);
+          transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+          will-change: transform;
+        }
+        .navbrand__mark {
+          position: relative;
+          z-index: 1;
+          width: 36px;
+          height: 36px;
+          border-radius: 9px;
+          display: block;
+        }
+        /* Diagonal light sweep, confined to the logo box (no clipping of the spinning mark). */
+        .navbrand__logo::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 2;
+          border-radius: 9px;
+          pointer-events: none;
+          background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%);
+          background-size: 250% 100%;
+          background-position: 150% 0;
+          opacity: 0;
+        }
+        .navbrand__word {
+          font-family: var(--font-sans);
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--color-fg); /* fallback if background-clip:text is unsupported */
+          background: linear-gradient(90deg,
+            var(--color-fg) 0 42%,
+            var(--color-violet-soft) 50%,
+            var(--color-cyan) 56%,
+            var(--color-fg) 64% 100%);
+          background-size: 240% 100%;
+          background-position: 88% 0;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+          .navbrand:hover .navbrand__logo {
+            transform: scale(1.07) rotate(-4deg);
+            box-shadow: 0 8px 26px rgba(124, 92, 255, 0.7);
+          }
+          .navbrand:hover .navbrand__mark {
+            animation: navSpin 0.75s cubic-bezier(0.3, 0.7, 0.3, 1);
+          }
+          .navbrand:hover .navbrand__logo::after {
+            animation: navShine 0.75s ease;
+          }
+          .navbrand:hover .navbrand__word {
+            animation: navWord 0.9s ease;
+          }
+        }
+
+        @keyframes navSpin {
+          from { transform: rotate(0); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes navShine {
+          0% { opacity: 1; background-position: 150% 0; }
+          100% { opacity: 1; background-position: -150% 0; }
+        }
+        @keyframes navWord {
+          0% { background-position: 88% 0; }
+          100% { background-position: -30% 0; }
         }
       `}</style>
     </header>

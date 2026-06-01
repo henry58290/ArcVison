@@ -1,43 +1,22 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MarketGlyph, getCardGradient } from './utils/marketGlyphs';
 import './MarketCard.css';
 
 const STATUS_CLASS = { 0: 'open', 1: 'resolved', 2: 'cancelled' };
 
-/** Decorative price-history sparkline. Seeded by marketId, anchored to yesPercent.
- *  Cosmetic only — it does not fetch or represent real trade history. */
-function Sparkline({ marketId, yesPercent }) {
-  const n = 8;
-  const seed = Number(marketId) % 10;
-  const start = yesPercent > 50 ? Math.max(38, yesPercent - 24) : Math.min(62, yesPercent + 20);
-  const pts = [];
-  for (let i = 0; i < n; i++) {
-    const t = i / (n - 1);
-    let v = start + (yesPercent - start) * t + Math.sin(i * 1.7 + seed * 0.6) * 2.4;
-    v = Math.max(5, Math.min(95, v));
-    const x = Math.round((i / (n - 1)) * 200);
-    const y = +(30 - (v / 100) * 24).toFixed(1);
-    pts.push([x, y]);
-  }
-  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${p[0]} ${p[1]}`).join(' ');
-  const gradId = `mcard-spark-${marketId}`;
+/** Read the motion preference once — mousemove fires a lot, so we never call
+ *  matchMedia per-event. */
+function prefersReducedMotion() {
   return (
-    <svg className="mcard__spark-svg" viewBox="0 0 200 34" preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#7C5CFF" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#7C5CFF" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`${line} L200 34 L0 34Z`} fill={`url(#${gradId})`} />
-      <path d={line} fill="none" stroke="#A594FF" strokeWidth="1.6" />
-    </svg>
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
 
 /**
- * MarketCard — prediction market card.
+ * MarketCard — collectible / holographic prediction market card.
  *
  * Props:
  * - market: { marketId, question, status, outcome, yesOdds, totalVolume, totalTrades, endTime, category }
@@ -75,6 +54,8 @@ export default function MarketCard({
 }) {
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
+  const cardRef = useRef(null);
+  const reduceMotion = useRef(prefersReducedMotion());
 
   const { title, imageUrl, subcategory } = parseMarketTitle(market.question);
   const yesPercent = market.yesOdds ? Math.round(Number(market.yesOdds) / 100) : 50;
@@ -86,40 +67,51 @@ export default function MarketCard({
   const gradient = getCardGradient(market.category, subcategory);
   const goToMarket = () => navigate(`/market/${market.marketId}`);
 
+  // Holographic tilt + cursor-following sheen. We mutate CSS custom properties
+  // on the node directly (via ref) so the effect never triggers a React
+  // re-render — only transform/opacity/background-position change.
+  const handleTilt = (e) => {
+    const el = cardRef.current;
+    if (!el || reduceMotion.current) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    el.style.setProperty('--rx', `${((px - 0.5) * 9).toFixed(2)}deg`);
+    el.style.setProperty('--ry', `${((0.5 - py) * 9).toFixed(2)}deg`);
+    el.style.setProperty('--mx', `${(px * 100).toFixed(1)}%`);
+    el.style.setProperty('--my', `${(py * 100).toFixed(1)}%`);
+    el.classList.add('is-tilt');
+  };
+
+  const resetTilt = () => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.setProperty('--rx', '0deg');
+    el.style.setProperty('--ry', '0deg');
+    el.classList.remove('is-tilt');
+  };
+
   return (
     <article
+      ref={cardRef}
       className={`mcard mcard--${statusKey}`}
       onClick={goToMarket}
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') goToMarket(); }}
+      onMouseMove={handleTilt}
+      onMouseLeave={resetTilt}
     >
-      {/* ── Thumbnail (custom image, or gradient + category glyph) ── */}
-      <div
-        className="mcard__thumb"
-        style={hasImage ? undefined : { background: gradient }}
-      >
-        {hasImage ? (
-          <img
-            className="mcard__thumb-img"
-            src={imageUrl}
-            alt=""
-            loading="lazy"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <span className="mcard__glyph">
-            <MarketGlyph categoryId={market.category} subcategory={subcategory} />
-          </span>
-        )}
-
-        <div className="mcard__thumb-tags">
+      <div className="mcard__inner">
+        {/* ── Top row: category badge + time-left / status ── */}
+        <div className="mcard__top">
           <span
             className="mcard__chip"
             style={{ color: cat.color, background: cat.bg, borderColor: `${cat.color}55` }}
           >
+            <MarketGlyph categoryId={market.category} subcategory={subcategory} size={13} />
             {cat.label}
           </span>
-          <span className="mcard__time">
+          <span className={`mcard__time${market.status === 0 ? '' : ' mcard__time--ended'}`}>
             {market.status === 0 && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="12" r="9" />
@@ -131,136 +123,157 @@ export default function MarketCard({
               : market.status === 1 ? 'Resolved' : 'Cancelled'}
           </span>
         </div>
-      </div>
 
-      {/* ── Body ── */}
-      <div className="mcard__body">
-        <div className="mcard__qrow">
-          <span>{cat.label}</span>
-          {subcategory && <span className="mcard__region">{subcategory}</span>}
-        </div>
-
-        <h3 className="mcard__title">{title}</h3>
-
-        {/* Probability + price buttons — open markets only */}
-        {market.status === 0 && (
-          <>
-            <div className="mcard__prob">
-              <div className="mcard__prob-top">
-                <span className="mcard__prob-yes">Yes {yesPercent}%</span>
-                <span className="mcard__prob-no">No {noPercent}%</span>
-              </div>
-              <div className="mcard__bar">
-                <div className="mcard__bar-fill" style={{ width: `${yesPercent}%` }} />
-              </div>
-            </div>
-
-            <div className="mcard__spark">
-              <Sparkline marketId={market.marketId} yesPercent={yesPercent} />
-            </div>
-
-            <div className="mcard__prices">
-              <button
-                className="mcard__bet mcard__bet--yes"
-                onClick={(e) => { e.stopPropagation(); goToMarket(); }}
-              >
-                <span className="mcard__bet-lbl">Yes</span>
-                <span className="mcard__bet-px">{yesPercent}¢</span>
-              </button>
-              <button
-                className="mcard__bet mcard__bet--no"
-                onClick={(e) => { e.stopPropagation(); goToMarket(); }}
-              >
-                <span className="mcard__bet-lbl">No</span>
-                <span className="mcard__bet-px">{noPercent}¢</span>
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* Resolution Banner */}
-        {market.status === 1 && (
-          <div className={`mcard__resolution mcard__resolution--${market.outcome ? 'yes' : 'no'}`}>
-            Resolved: {market.outcome ? 'YES' : 'NO'}
-            {isConnected && address && ClaimWinningsButton && (
-              <ClaimWinningsButton
-                marketId={market.marketId}
-                userAddress={address}
-                refreshKey={refreshKey}
-                onClaimed={onClaimed}
+        {/* ── Art window — full image (contain) over a blurred same-image backdrop,
+              so any aspect ratio is framed and never cropped. Gradient + category
+              glyph fallback when the image is missing or fails to load. ── */}
+        <div className="mcard__art" style={hasImage ? undefined : { background: gradient }}>
+          {hasImage ? (
+            <>
+              <div
+                className="mcard__art-bg"
+                style={{ backgroundImage: `url("${imageUrl}")` }}
+                aria-hidden="true"
               />
-            )}
-          </div>
-        )}
-
-        {/* Cancelled Info */}
-        {market.status === 2 && (() => {
-          const info = cancelledMarketInfo?.[market.marketId];
-          return (
-            <div className="mcard__cancelled-info">
-              <div className="mcard__cancelled-label">Market Cancelled</div>
-              {info?.reason && (
-                <div className="mcard__cancelled-reason">"{info.reason}"</div>
-              )}
-              {isConnected && address && RefundButton && (
-                <RefundButton marketId={market.marketId} userAddress={address} />
-              )}
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* ── Footer ── */}
-      <div className="mcard__footer">
-        <div className="mcard__traders">
-          <div className="mcard__avatar-stack">
-            <div className="mcard__avatar mcard__avatar--1" />
-            <div className="mcard__avatar mcard__avatar--2" />
-            <div className="mcard__avatar mcard__avatar--3" />
-          </div>
-          <span>{market.totalTrades.toString()} traders</span>
-        </div>
-        <div className="mcard__foot-right">
-          <span className="mcard__vol">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-            </svg>
-            {formatVolume(market.totalVolume)}
-          </span>
-          {market.status === 0 && (
-            <span className="mcard__earn">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
-                <path d="M12 3 3 9l9 12 9-12z" />
-              </svg>
-              Earn pts
+              <img
+                className="mcard__art-img"
+                src={imageUrl}
+                alt=""
+                loading="lazy"
+                onError={() => setImgError(true)}
+              />
+            </>
+          ) : (
+            <span className="mcard__art-glyph">
+              <MarketGlyph categoryId={market.category} subcategory={subcategory} />
             </span>
           )}
+          <div className="mcard__art-grad" aria-hidden="true" />
+          <div className="mcard__art-holo" aria-hidden="true" />
         </div>
-      </div>
 
-      {/* ── Admin Controls ── */}
-      {isOwner && market.status === 0 && (
-        <div className="mcard__admin">
-          <button
-            className="mcard__admin-btn mcard__admin-btn--yes"
-            onClick={(e) => { e.stopPropagation(); onResolve({ marketId: market.marketId, outcome: true }); }}
-          >
-            Resolve YES
-          </button>
-          <button
-            className="mcard__admin-btn mcard__admin-btn--no"
-            onClick={(e) => { e.stopPropagation(); onResolve({ marketId: market.marketId, outcome: false }); }}
-          >
-            Resolve NO
-          </button>
-          <button
-            className="mcard__admin-btn mcard__admin-btn--cancel"
-            onClick={(e) => { e.stopPropagation(); onCancel({ marketId: market.marketId }); }}
-          >
-            Cancel
-          </button>
+        {/* ── Body ── */}
+        <div className="mcard__body">
+          {subcategory && <div className="mcard__region">{subcategory}</div>}
+
+          <h3 className="mcard__title">{title}</h3>
+
+          {/* Probability + price buttons — open markets only */}
+          {market.status === 0 && (
+            <>
+              <div className="mcard__prob">
+                <div className="mcard__prob-top">
+                  <span className="mcard__prob-yes">Yes {yesPercent}%</span>
+                  <span className="mcard__prob-no">No {noPercent}%</span>
+                </div>
+                <div className="mcard__bar">
+                  <div className="mcard__bar-fill" style={{ width: `${yesPercent}%` }} />
+                </div>
+              </div>
+
+              <div className="mcard__prices">
+                <button
+                  className="mcard__bet mcard__bet--yes"
+                  onClick={(e) => { e.stopPropagation(); goToMarket(); }}
+                >
+                  <span className="mcard__bet-lbl">Yes</span>
+                  <span className="mcard__bet-px">{yesPercent}¢</span>
+                </button>
+                <button
+                  className="mcard__bet mcard__bet--no"
+                  onClick={(e) => { e.stopPropagation(); goToMarket(); }}
+                >
+                  <span className="mcard__bet-lbl">No</span>
+                  <span className="mcard__bet-px">{noPercent}¢</span>
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Resolution Banner */}
+          {market.status === 1 && (
+            <div className={`mcard__resolution mcard__resolution--${market.outcome ? 'yes' : 'no'}`}>
+              Resolved: {market.outcome ? 'YES' : 'NO'}
+              {isConnected && address && ClaimWinningsButton && (
+                <ClaimWinningsButton
+                  marketId={market.marketId}
+                  userAddress={address}
+                  refreshKey={refreshKey}
+                  onClaimed={onClaimed}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Cancelled Info */}
+          {market.status === 2 && (() => {
+            const info = cancelledMarketInfo?.[market.marketId];
+            return (
+              <div className="mcard__cancelled-info">
+                <div className="mcard__cancelled-label">Market Cancelled</div>
+                {info?.reason && (
+                  <div className="mcard__cancelled-reason">"{info.reason}"</div>
+                )}
+                {isConnected && address && RefundButton && (
+                  <RefundButton marketId={market.marketId} userAddress={address} />
+                )}
+              </div>
+            );
+          })()}
         </div>
-      )}
+
+        {/* ── Footer ── */}
+        <div className="mcard__footer">
+          <div className="mcard__traders">
+            <div className="mcard__avatar-stack">
+              <div className="mcard__avatar mcard__avatar--1" />
+              <div className="mcard__avatar mcard__avatar--2" />
+              <div className="mcard__avatar mcard__avatar--3" />
+            </div>
+            <span>{market.totalTrades.toString()} traders</span>
+          </div>
+          <div className="mcard__foot-right">
+            <span className="mcard__vol">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+              </svg>
+              {formatVolume(market.totalVolume)}
+            </span>
+            {market.status === 0 && (
+              <span className="mcard__earn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+                  <path d="M12 3 3 9l9 12 9-12z" />
+                </svg>
+                Earn pts
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Admin Controls ── */}
+        {isOwner && market.status === 0 && (
+          <div className="mcard__admin">
+            <button
+              className="mcard__admin-btn mcard__admin-btn--yes"
+              onClick={(e) => { e.stopPropagation(); onResolve({ marketId: market.marketId, outcome: true }); }}
+            >
+              Resolve YES
+            </button>
+            <button
+              className="mcard__admin-btn mcard__admin-btn--no"
+              onClick={(e) => { e.stopPropagation(); onResolve({ marketId: market.marketId, outcome: false }); }}
+            >
+              Resolve NO
+            </button>
+            <button
+              className="mcard__admin-btn mcard__admin-btn--cancel"
+              onClick={(e) => { e.stopPropagation(); onCancel({ marketId: market.marketId }); }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
     </article>
   );
 }
@@ -271,21 +284,26 @@ export default function MarketCard({
 export function MarketCardSkeleton() {
   return (
     <article className="mcard mcard--loading">
-      <div className="mcard__thumb" />
-      <div className="mcard__body">
-        <div className="mcard__qrow" style={{ width: '40%', height: 11 }} />
-        <h3 className="mcard__title" style={{ width: '85%' }}>&nbsp;</h3>
-        <div className="mcard__prob">
-          <div className="mcard__bar" />
+      <div className="mcard__inner">
+        <div className="mcard__top">
+          <span className="mcard__sk-line" style={{ width: 88, height: 24 }} />
+          <span className="mcard__sk-line" style={{ width: 52, height: 24 }} />
         </div>
-        <div className="mcard__prices">
-          <span className="mcard__bet" style={{ height: 42 }} />
-          <span className="mcard__bet" style={{ height: 42 }} />
+        <div className="mcard__art" />
+        <div className="mcard__body">
+          <h3 className="mcard__title" style={{ width: '85%' }}>&nbsp;</h3>
+          <div className="mcard__prob">
+            <div className="mcard__bar" />
+          </div>
+          <div className="mcard__prices">
+            <span className="mcard__bet" style={{ height: 42 }} />
+            <span className="mcard__bet" style={{ height: 42 }} />
+          </div>
         </div>
-      </div>
-      <div className="mcard__footer">
-        <span style={{ width: 90, height: 14 }} className="mcard__sk-line" />
-        <span style={{ width: 56, height: 14 }} className="mcard__sk-line" />
+        <div className="mcard__footer">
+          <span style={{ width: 90, height: 14 }} className="mcard__sk-line" />
+          <span style={{ width: 56, height: 14 }} className="mcard__sk-line" />
+        </div>
       </div>
     </article>
   );
