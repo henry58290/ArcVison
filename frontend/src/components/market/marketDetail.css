@@ -293,7 +293,15 @@
 }
 
 .md-plot { flex: 1; position: relative; }
-.md-plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.md-plot svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+  touch-action: none; /* don't scroll the page while dragging the crosshair */
+}
 
 .md-edot {
   position: absolute;
@@ -302,12 +310,67 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
-  transition: top 0.3s, left 0.3s;
+  transition: top 0.3s, left 0.3s, opacity 0.15s;
   pointer-events: none;
 }
 
 .md-edot--y { background: var(--color-yes); box-shadow: 0 0 0 4px var(--color-yes-dim); }
 .md-edot--n { background: var(--color-no); box-shadow: 0 0 0 4px var(--color-no-dim); }
+
+/* ── Hover: crosshair dots, floating % readouts, date label ── */
+.md-hdot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--color-surface); /* ring that "cuts" the dot from the line */
+  z-index: 3;
+  pointer-events: none;
+}
+
+.md-hdot--y { background: var(--color-yes); box-shadow: 0 0 0 5px var(--color-yes-dim); }
+.md-hdot--n { background: var(--color-no); box-shadow: 0 0 0 5px var(--color-no-dim); }
+
+.md-flabel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px var(--color-shadow);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translate(12px, -50%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.md-flabel.is-left { transform: translate(calc(-100% - 12px), -50%); }
+.md-flabel__dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.md-flabel__name { font-weight: 600; }
+.md-flabel__val { color: var(--color-fg); font-weight: 600; }
+
+.md-clabel {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  background: var(--color-surface);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
+  z-index: 4;
+  pointer-events: none;
+}
 
 .md-xaxis {
   display: flex;
