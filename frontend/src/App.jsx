@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar";
+import BottomNav from "./components/BottomNav";
 import Dashboard from "./pages/Dashboard";
 import MarketDetail from "./pages/MarketDetail";
 import Swap from "./pages/Swap";
@@ -18,6 +19,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/resolve" element={<Navigate to="/?tab=resolved" replace />} />
         </Routes>
+        <BottomNav />
       </div>
     </BrowserRouter>
   );

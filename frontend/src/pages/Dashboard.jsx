@@ -629,7 +629,7 @@ export default function Dashboard() {
   }, [markets, activeTab, selectedCategory, selectedSubcategory]);
 
   return (
-    <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
+    <main className="page--with-bottom-nav" style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
       {/* Hero Section */}
       <section style={{ width: '100%', margin: '0 0 3rem', padding: '0 1rem' }}>
         {/* Admin Controls */}

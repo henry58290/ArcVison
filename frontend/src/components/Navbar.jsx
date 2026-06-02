@@ -119,7 +119,6 @@ function WalletDropdown({ account, onClose }) {
 }
 
 function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [walletMenuOpen, setWalletMenuOpen] = useState(false);
   const settingsRef = useRef(null);
@@ -551,242 +550,78 @@ function Navbar() {
             </ConnectButton.Custom>
           </div>
 
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              display: 'none',
-              padding: '0.5rem',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-fg)',
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              {mobileMenuOpen ? (
-                <path d="M6 6L18 18M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          {/* ── Mobile app-bar actions (mobile only; hidden on desktop) ── */}
+          <div className="mobile-actions">
+            <span
+              className="mobile-season"
+              aria-label="Season 1"
+              title="Season 1 — points coming soon"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3 3 9l9 12 9-12z" />
+              </svg>
+              Season 1
+            </span>
+
+            <button
+              type="button"
+              className="mobile-theme"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              onClick={() => setThemeMode(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
               ) : (
-                <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
               )}
-            </svg>
-          </button>
-        </div>
-      </nav>
+            </button>
 
-      {mobileMenuOpen && (
-        <div 
-          className="mobile-menu"
-          style={{
-            display: 'none',
-            position: 'absolute',
-            top: '72px',
-            left: 0,
-            right: 0,
-            background: 'rgba(var(--color-bg-rgb), 0.98)',
-            borderBottom: '1px solid var(--color-border-subtle)',
-            padding: '1rem',
-          }}
-        >
-          {navLinks.map((link) => {
-            const active = location.pathname === link.path;
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  display: 'block',
-                  padding: '0.75rem 1rem',
-                  fontSize: '1rem',
-                  fontWeight: '500',
-                  color: active ? 'var(--color-fg)' : 'var(--color-fg-muted)',
-                  textDecoration: 'none',
-                  background: active ? 'var(--color-surface-hover)' : 'transparent',
-                  borderRadius: '11px',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-
-          {/* Theme toggle in mobile drawer */}
-          <div style={{
-            borderTop: '1px solid var(--color-border-subtle)',
-            marginTop: '0.5rem',
-            paddingTop: '0.75rem',
-          }}>
-            <p style={{
-              fontSize: '0.6875rem',
-              fontWeight: '600',
-              color: 'var(--color-fg-dim)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              padding: '0 1rem 0.5rem',
-              margin: 0,
-            }}>
-              Theme
-            </p>
-            <div style={{ display: 'flex', gap: '8px', padding: '0 1rem' }}>
-              <button
-                onClick={() => { setThemeMode('light'); }}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '10px',
-                  background: theme === 'light' ? 'var(--color-accent-muted)' : 'var(--color-surface)',
-                  border: theme === 'light' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  color: theme === 'light' ? 'var(--color-accent)' : 'var(--color-fg-muted)',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                }}
-              >
-                Light
-              </button>
-              <button
-                onClick={() => { setThemeMode('dark'); }}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  padding: '10px',
-                  background: theme === 'dark' ? 'var(--color-accent-muted)' : 'var(--color-surface)',
-                  border: theme === 'dark' ? '1px solid var(--color-accent)' : '1px solid var(--color-border)',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  color: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-fg-muted)',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                }}
-              >
-                Dark
-              </button>
-            </div>
-          </div>
-
-          {/* Wallet connect in mobile drawer */}
-          <div style={{ padding: '0.75rem 1rem 0' }}>
             <ConnectButton.Custom>
-              {({
-                account,
-                chain,
-                openAccountModal,
-                openChainModal,
-                openConnectModal,
-                mounted,
-              }) => {
+              {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
                 const ready = mounted;
                 const connected = ready && account && chain;
-
-                if (!ready) return null;
-
+                if (!ready) {
+                  return <span className="mobile-wallet-skel" aria-hidden="true" />;
+                }
                 if (!connected) {
                   return (
-                    <button
-                      onClick={() => { openConnectModal(); setMobileMenuOpen(false); }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        width: '100%',
-                        padding: '0.75rem',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        border: 'none',
-                        borderRadius: '11px',
-                        cursor: 'pointer',
-                        background: 'var(--color-accent)',
-                        color: '#fff',
-                        boxShadow: '0 4px 18px rgba(124,92,255,0.35)',
-                      }}
-                    >
-                      Connect Wallet
+                    <button type="button" className="mobile-connect" onClick={openConnectModal}>
+                      Connect
                     </button>
                   );
                 }
-
                 if (chain.unsupported) {
                   return (
                     <button
-                      onClick={() => { openChainModal(); setMobileMenuOpen(false); }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        width: '100%',
-                        padding: '0.75rem',
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        border: 'none',
-                        borderRadius: '11px',
-                        cursor: 'pointer',
-                        background: 'var(--color-danger)',
-                        color: 'white',
-                      }}
+                      type="button"
+                      className="mobile-wallet mobile-wallet--warn"
+                      onClick={openChainModal}
+                      aria-label="Wrong network"
                     >
-                      Wrong Network
+                      <span className="mobile-wallet__dot mobile-wallet__dot--warn" aria-hidden="true" />
                     </button>
                   );
                 }
-
                 return (
                   <button
-                    onClick={() => { openAccountModal(); setMobileMenuOpen(false); }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      padding: '0.75rem',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      border: '1px solid var(--color-border-subtle)',
-                      borderRadius: '11px',
-                      cursor: 'pointer',
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-fg)',
-                    }}
+                    type="button"
+                    className="mobile-wallet"
+                    onClick={openAccountModal}
+                    aria-label={`Account ${account.displayName}`}
                   >
-                    <span
-                      style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        background: 'var(--color-yes)',
-                        boxShadow: '0 0 0 3px rgba(47,224,160,0.18)',
-                      }}
-                      aria-hidden="true"
-                    />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                      {account.displayName}
-                    </span>
-                    {account.displayBalance && (
-                      <span style={{ color: 'var(--color-fg-muted)', fontFamily: 'var(--font-mono)' }}>
-                        · {account.displayBalance}
-                      </span>
-                    )}
+                    <span className="mobile-wallet__dot" aria-hidden="true" />
                   </button>
                 );
               }}
             </ConnectButton.Custom>
           </div>
         </div>
-      )}
+      </nav>
 
       <style>{`
         @keyframes scaleIn {
@@ -804,12 +639,91 @@ function Navbar() {
           .desktop-only {
             display: none !important;
           }
-          .mobile-menu-btn {
+          .mobile-actions {
             display: flex !important;
           }
-          .mobile-menu {
-            display: block !important;
-          }
+        }
+
+        /* ── Mobile app-bar actions (base display:none → desktop never shows it) ── */
+        .mobile-actions {
+          display: none;
+          align-items: center;
+          gap: 8px;
+        }
+        .mobile-season {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          height: 34px;
+          padding: 0 10px;
+          border: 1px solid rgba(124, 92, 255, 0.35);
+          border-radius: 10px;
+          background: linear-gradient(180deg, rgba(124, 92, 255, 0.14), rgba(124, 92, 255, 0.05));
+          color: var(--color-violet-soft);
+          font-family: var(--font-sans);
+          font-size: 12px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+        .mobile-season svg { display: block; }
+        .mobile-theme {
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          border: 1px solid var(--color-border);
+          border-radius: 10px;
+          background: var(--color-surface);
+          color: var(--color-fg-muted);
+          cursor: pointer;
+          transition: color 0.15s ease, border-color 0.15s ease;
+        }
+        .mobile-theme:hover {
+          color: var(--color-fg);
+          border-color: var(--color-fg-dim);
+        }
+        .mobile-connect {
+          height: 34px;
+          padding: 0 14px;
+          border: none;
+          border-radius: 10px;
+          background: var(--color-accent);
+          color: #fff;
+          font-family: var(--font-sans);
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 18px rgba(124, 92, 255, 0.35);
+        }
+        .mobile-wallet {
+          position: relative;
+          width: 34px;
+          height: 34px;
+          padding: 0;
+          border: none;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--color-violet), var(--color-cyan));
+          cursor: pointer;
+        }
+        .mobile-wallet--warn { background: var(--color-danger); }
+        .mobile-wallet__dot {
+          position: absolute;
+          right: -1px;
+          bottom: -1px;
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: var(--color-yes);
+          border: 2px solid var(--color-bg);
+        }
+        .mobile-wallet__dot--warn { background: #fff; }
+        .mobile-wallet-skel {
+          display: inline-block;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border-subtle);
         }
 
         /* ── Brand hover: logo spin + diagonal shine + glow, wordmark shimmer ── */

@@ -1,0 +1,94 @@
+/* ──────────────────────────────────────────────────────────────
+   BottomNav — mobile-only bottom tab bar.
+
+   DESKTOP SAFETY: the bar is `display: none` by default and is only
+   turned on inside `@media (max-width: 768px)`. Nothing here applies
+   at desktop widths, so the desktop UI is untouched.
+   ────────────────────────────────────────────────────────────── */
+
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90; /* above page content, below modals/overlays (z 100+) */
+    display: flex;
+    background: rgba(var(--color-bg-rgb), 0.9);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--color-border-subtle);
+    /* Respect the iOS/Android home-indicator inset. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottom-nav__item {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 0 8px;
+    color: var(--color-fg-dim);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    transition: color var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bottom-nav__item:hover {
+    color: var(--color-fg-muted);
+  }
+
+  .bottom-nav__item.is-active {
+    color: var(--color-violet-soft);
+  }
+
+  /* Small top indicator on the active tab. */
+  .bottom-nav__item.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 30px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: linear-gradient(90deg, var(--color-violet), var(--color-cyan));
+  }
+
+  .bottom-nav__ic {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  .bottom-nav__ic svg {
+    width: 23px;
+    height: 23px;
+    display: block;
+  }
+
+  /* Soft violet glow behind the active icon. */
+  .bottom-nav__item.is-active .bottom-nav__ic::after {
+    content: "";
+    position: absolute;
+    inset: -7px -11px;
+    border-radius: 11px;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.22), transparent 70%);
+    z-index: -1;
+  }
+
+  .bottom-nav__label {
+    line-height: 1;
+  }
+}

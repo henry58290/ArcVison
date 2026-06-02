@@ -463,7 +463,7 @@ export default function MarketDetail() {
 
   if (marketLoading) {
     return (
-      <main className="md-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="md-page page--with-bottom-nav" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="md-spin" />
       </main>
     );
@@ -471,7 +471,7 @@ export default function MarketDetail() {
 
   if (!market) {
     return (
-      <main className="md-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+      <main className="md-page page--with-bottom-nav" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
         <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-fg)' }}>Market not found</div>
         <button className="md-cta" style={{ width: 'auto', padding: '12px 24px' }} onClick={() => navigate('/')}>
           Back to Markets
@@ -782,7 +782,7 @@ export default function MarketDetail() {
   /* ══════════════════════════ RENDER ══════════════════════════ */
 
   return (
-    <main className="md-page">
+    <main className="md-page page--with-bottom-nav">
       <div className="md-wrap">
         {/* Breadcrumb */}
         <div className="md-crumb">
