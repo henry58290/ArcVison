@@ -919,3 +919,27 @@ body::before {
   background: var(--color-border);
   border-radius: 2px;
 }
+
+/* ══════════════════════════════════════════════
+   Mobile-only adjustments (bottom tab bar present)
+   Everything here is gated behind max-width:768px so the
+   desktop layout is byte-for-byte unchanged.
+   ══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Clear the fixed bottom tab bar (+ home-indicator safe area).
+     Wins over the pages' inline / class padding-bottom via !important. */
+  .page--with-bottom-nav {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Status tabs + category chips become single horizontal scroll rows
+     (they already have overflow-x:auto + hidden scrollbar + non-shrinking
+     items — we only drop the wrap on mobile). */
+  .cat-chips {
+    flex-wrap: nowrap;
+  }
+
+  .subcategory-chips--desktop-hidden {
+    flex-wrap: nowrap !important;
+  }
+}

@@ -92,7 +92,7 @@ export default function Profile() {
   }, [bets]);
 
   return (
-    <main className="pf-page">
+    <main className="pf-page page--with-bottom-nav">
       <div className="pf-wrap">
         <div>
           <div className="pf-eyebrow">Account</div>

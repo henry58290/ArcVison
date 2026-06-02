@@ -478,7 +478,7 @@ function SwapPage() {
   };
 
   return (
-    <main style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
+    <main className="page--with-bottom-nav" style={{ paddingTop: '100px', paddingBottom: '80px', minHeight: '100vh' }}>
       <div style={{ maxWidth: '420px', margin: '0 auto', padding: '0 1rem' }}>
         <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '1.5rem', marginBottom: '1rem', boxShadow: '0 8px 32px var(--color-shadow)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
