@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Market Detail — ArcVision trade page
+   Market Detail — Verdict trade page
    Reuses the global design tokens (index.css / .dark), mirroring the
    profile redesign convention (component-scoped CSS, md- prefix).
    Reference-faithful in dark mode; readable fallbacks keep light usable.

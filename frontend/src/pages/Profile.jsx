@@ -48,12 +48,12 @@ export default function Profile() {
     };
     // Custom event fired by `appendBet` for same-tab updates.
     window.addEventListener('storage', handleStorage);
-    window.addEventListener('arcvision:bets-changed', refresh);
+    window.addEventListener('Verdict:bets-changed', refresh);
     // Refresh on focus too — covers navigation back from MarketDetail.
     window.addEventListener('focus', refresh);
     return () => {
       window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('arcvision:bets-changed', refresh);
+      window.removeEventListener('Verdict:bets-changed', refresh);
       window.removeEventListener('focus', refresh);
     };
   }, []);

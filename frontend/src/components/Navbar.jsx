@@ -208,9 +208,9 @@ function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Link to="/" className="navbrand" style={{ display: 'flex', alignItems: 'center', gap: '11px', textDecoration: 'none' }}>
             <span className="navbrand__logo">
-              <img src="/logos/arcvision.png" alt="ArcVision" className="navbrand__mark" />
+              <img src="/logos/Verdict.png" alt="Verdict" className="navbrand__mark" />
             </span>
-            <span className="navbrand__word">ArcVision</span>
+            <span className="navbrand__word">Verdict</span>
           </Link>
         </div>
 

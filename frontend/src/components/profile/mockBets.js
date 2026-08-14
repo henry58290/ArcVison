@@ -13,7 +13,7 @@
  * @property {string} [txHash]       on-chain tx hash, when applicable
  */
 
-export const BETS_STORAGE_KEY = 'arcvision_bets';
+export const BETS_STORAGE_KEY = 'Verdict_bets';
 
 /** Fallback set used the first time a user lands on the profile page. */
 /** @type {Bet[]} */
@@ -88,7 +88,7 @@ export function appendBet(bet) {
   try {
     localStorage.setItem(BETS_STORAGE_KEY, JSON.stringify(next));
     // Notify same-tab listeners — `storage` only fires cross-tab.
-    window.dispatchEvent(new CustomEvent('arcvision:bets-changed'));
+    window.dispatchEvent(new CustomEvent('Verdict:bets-changed'));
   } catch { /* ignore */ }
   return next;
 }

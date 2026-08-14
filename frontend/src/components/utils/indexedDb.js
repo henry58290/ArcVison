@@ -1,4 +1,4 @@
-const DB_NAME = 'arcvision-cache';
+const DB_NAME = 'Verdict-cache';
 const DB_VERSION = 2; // Bumped: V1→V2 data format change (Number fields instead of BigInt)
 const STORE_NAME = 'market-logs';
 

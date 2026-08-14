@@ -12,7 +12,7 @@ function truncate(addr) {
  * Identity (avatar upload, username edit, copy address, Connect X) is fully
  * wired to the existing localStorage-backed handlers.
  *
- * The rank card is a PLACEHOLDER — ArcVision has no points/rank system yet.
+ * The rank card is a PLACEHOLDER — Verdict has no points/rank system yet.
  * To wire it, pass a `rank` prop: { tier, points, rank, total, nextTier, progressPct }.
  */
 export default function ProfileHeader({
